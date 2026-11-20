@@ -30,19 +30,18 @@ package), validated by `schema/extension.schema.json#/$defs/module`:
   "limits": {"fuel": 50000000, "memoryMiB": 32, "stateKiB": 64},
   "imports": ["log", "now", "state", "http"],
   "http": {"hosts": ["api.example.com"]},
-  "credentials": [{"name": "api", "label": "API key",
-                   "inject": {"header": "Authorization", "format": "Bearer {secret}"}}] }
+  "credentials": [{"name": "api_key", "label": "API key", "secret": true}] }
 ```
 
 | Key | |
 |---|---|
 | `module`, `sha256` | the release asset and its SHA-256; an asset that does not match is refused |
-| `limits.fuel` | per call, about one unit per WebAssembly instruction; the host caps it (adapter-ingest: 100 million, about 65 ms of a core) |
+| `limits.fuel` | per call, about one unit per WebAssembly instruction; each service caps it (adapter-ingest: 100 million, about 65 ms of a core; the connectivity service: 2 billion) |
 | `limits.memoryMiB` | linear memory; growing past it fails (`memory.grow` gives -1) |
 | `limits.stateKiB` | the most `state` an install may hold, all keys together; default 64, at most 1024 |
 | `imports` | the host functions the module may import. One it imports but did not declare is refused at install |
 | `http.hosts` | the only hosts `http` reaches, each a name or `*.` and a name; HTTPS only |
-| `credentials` | secrets an organization enters when it installs the module, sealed by the platform. `http` injects one by name into a request (`inject.header`, its value `inject.format` with `{secret}` or `{secret_b64}` filled in); the module never sees a secret |
+| `credentials` | the fields an organization's admin fills in when installing the module (`secret: true` for one shown once and sealed). The module names them in a request as placeholders the host fills in; it never holds one |
 
 ## Exports
 
@@ -67,29 +66,55 @@ import. Pointers and lengths are into the module's memory; text is UTF-8.
 | `log` (`"log"`) | `(level: i32, ptr: i32, len: i32)` | a line for the platform's log under the module's name, now rather than with the answer; level 0 debug, 1 info, 2 warning, 3 error |
 | `now` (`"now"`) | `() -> f64` | seconds since 1970 UTC |
 | `state_get` (`"state"`) | `(key_ptr: i32, key_len: i32, out_ptr: i32, out_cap: i32) -> i32` | the value's length, written to `out_ptr` when it fits in `out_cap` (call again with room otherwise); -1 for no value |
-| `state_set` (`"state"`) | `(key_ptr: i32, key_len: i32, val_ptr: i32, val_len: i32) -> i32` | 0, or -1 past `stateKiB`; an empty value deletes the key |
-| `http` (`"http"`) | `(req_ptr: i32, req_len: i32) -> i64` | the response, written into room the host takes with `pz_alloc`, as `(ptr << 32) \| len` |
+| `state_set` (`"state"`) | `(key_ptr: i32, key_len: i32, val_ptr: i32, val_len: i32, ttl_s: i32) -> i32` | 0, or -1 past `stateKiB`; kept `ttl_s` seconds (0: until replaced); an empty value deletes the key |
+| `http` (`"http"`) | `(req_ptr: i32, req_len: i32) -> i32` | makes a request, or an array of them at once, and returns the length of the response (or the array of responses), or -1 past the call's request limit |
+| `http_take` (`"http"`) | `(out_ptr: i32)` | copies that response to `out_ptr`, which has room for the length `http` returned |
 
 **State** is per install: one organization's, for one package, kept across
-its versions and the host's restarts. Keys are at most 64 octets.
+its versions and the host's restarts. Keys are 1 to 64 octets; what a module
+must keep between calls (an OAuth token, until its expiry) goes here, since
+its memory may be lost at any time.
 
-**http** request and response:
+**http** requests and responses are JSON:
 
 ```json
 { "method": "POST", "url": "https://api.example.com/v1/sims/123/suspend",
-  "headers": {"content-type": "application/json"}, "body": "<base64>",
-  "credential": "api", "timeout_ms": 5000 }
+  "headers": {"authorization": "Bearer {{credential.api_key}}", "content-type": "application/json"},
+  "body": "{\"reason\": \"lost\"}", "cache": 0, "timeout_ms": 5000 }
 ```
 ```json
-{ "status": 200, "headers": {"content-type": "application/json"}, "body": "<base64>" }
-{ "error": "host not declared" }
+{ "status": 200, "headers": {"content-type": "application/json"}, "body": "...", "cached": false }
+{ "status": 0, "error": "only api.example.com, over HTTPS" }
 ```
 
-HTTPS only, to a host `http.hosts` names, redirects not followed. At most 8
-requests per call, 10 s each (less if `timeout_ms` says so), a response body
-of at most 1 MiB. Time spent waiting on the network is not fuel, but it is
-the call's: a kind whose events must be answered quickly (a gateway's
-traffic) says in its own document whether `http` is allowed for it.
+- HTTPS only, to a host `http.hosts` names, redirects not followed, `GET`,
+  `POST`, `PUT`, `PATCH` and `DELETE`. Bodies are text.
+- `{{credential.<name>}}` and `{{basic:<user name>:<password name>}}` (the HTTP
+  Basic value of two fields) are filled in, in headers and the body only; a
+  placeholder in a URL is refused, since URLs are logged. A response that
+  echoes a credential has it replaced with `[credential]` before the module
+  reads it.
+- A `GET` with `"cache": <seconds>` (at most 3600) may be answered from the
+  host's cache, per install; an answer member `"invalidate": [url, ...]`
+  drops what a change made stale.
+- An array is made concurrently: at most 128 requests in one, 512 per call,
+  15 s each (less with `timeout_ms`), a response body of at most 4 MiB.
+- A refused or failed request is answered (`status` 0 and `error`), never a
+  trap.
+
+Waiting on the network is not fuel, but it is the call's time: a kind whose
+events must be answered quickly (a gateway's traffic) says in its own document
+whether `http` is allowed for it.
+
+## Metering
+
+The host meters every call, per install (organization and package), module
+version and UTC day: calls, fuel used and the CPU time it took, peak linear
+memory, traps and of them timeouts (fuel run out), `http` requests made,
+answered from cache and timed out, octets sent and received, and the state an
+install holds. The platform keeps these with its other usage records: they say
+what a module costs, show a runaway one, and are what a price set for a
+package is applied to.
 
 ## Failure
 
@@ -108,16 +133,15 @@ say and the host's to enforce, never the module's.
 
 ## Cost
 
-A call runs on the host's worker, so a module's CPU is bounded per call by
-its fuel, capped by the platform at 100 million units. Measured on an Apple M1
-core with wasmtime 50, for a module that spends every unit (a loop), including
-making its instance again after the trap:
+Fuel bounds a call's CPU. Measured on an Apple M1 core with wasmtime 50, for
+a module that spends every unit (a loop), including making its instance again
+after the trap:
 
 | Fuel | One exhausted call |
 |---|---|
 | 1 million | 0.8 ms |
 | 50 million (the default) | 33 ms |
-| 100 million (the cap) | about 65 ms |
+| 100 million (adapter-ingest's cap) | about 65 ms |
 
 A call that does its work costs about 0.04 ms of host time on top of the
 module's own.

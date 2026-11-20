@@ -20,20 +20,24 @@ needs from the platform:
 ```json
 "driver": {
   "runtime": "wasm", "module": "driver.wasm", "sha256": "...",
-  "imports": ["http"],
+  "imports": ["http", "state"],
   "http": {"hosts": ["api.example.com"]},
-  "credentials": [{"name": "api", "label": "API key",
-                   "inject": {"header": "Authorization", "format": "Bearer {secret}"}}]
+  "credentials": [{"name": "api_key", "label": "API key", "secret": true}]
 }
 ```
 
 - `http.hosts`: the only hosts it reaches, HTTPS only.
-- `credentials`: what an organization's admin enters when installing the
-  driver. The platform keeps it sealed and adds it to a request that names it
-  (`Request::with_credential("api")`); the driver never sees it, and cannot
-  send it anywhere but a declared host.
-- `state` (with `limits.stateKiB`), if it must remember something between
-  calls, such as a token's expiry.
+- `credentials`: the form an organization's admin fills in when installing
+  the driver. A request names a field as `{{credential.api_key}}` (in a header
+  or the body, never the URL), or `{{basic:user:password}}` for HTTP Basic, and
+  the platform fills it in: the driver never holds a secret, and one echoed in
+  a response is replaced before the driver reads it. `Request::bearer("api_key")`
+  writes the usual header.
+- `state`, for what it must keep between calls: an OAuth token for its
+  lifetime is `host::state_set("token", token.as_bytes(), expires_in)`.
+- Fleets: `host::http_all` makes up to 128 requests at once; a `GET` can be
+  `.cached(seconds)`, and an answer's `invalidate` drops what a change made
+  stale.
 
 ## Calls
 

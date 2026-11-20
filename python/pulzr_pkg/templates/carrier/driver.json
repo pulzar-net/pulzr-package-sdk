@@ -8,7 +8,6 @@
     "limits": {"fuel": 10000000, "memoryMiB": 16},
     "imports": ["http"],
     "http": {"hosts": ["api.example.com"]},
-    "credentials": [{"name": "api", "label": "API key",
-                     "inject": {"header": "Authorization", "format": "Bearer {secret}"}}]
+    "credentials": [{"name": "api_key", "label": "API key", "secret": true}]
   }
 }

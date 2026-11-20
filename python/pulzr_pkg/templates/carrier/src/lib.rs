@@ -14,7 +14,7 @@ impl Package for Driver {
         let mut answer = Answer::default();
         if let Event::Other(call) = event {
             if call.get("event").and_then(Value::as_str) == Some("ping") {
-                let request = Request::get("https://api.example.com/v1/ping").with_credential("api");
+                let request = Request::get("https://api.example.com/v1/ping").bearer("api_key");
                 let result = match host::http(&request) {
                     Ok(r) => json!({"ok": r.status == 200}),
                     Err(e) => json!({"ok": false, "error": e}),

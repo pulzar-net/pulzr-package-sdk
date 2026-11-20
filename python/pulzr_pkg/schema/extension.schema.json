@@ -34,20 +34,14 @@
           "additionalProperties": false
         },
         "credentials": {
+          "description": "The fields an admin fills in when installing the module; requests name them as {{credential.<name>}} placeholders the host fills in.",
           "type": "array",
           "items": {
-            "type": "object", "required": ["name", "label", "inject"],
+            "type": "object", "required": ["name", "label"],
             "properties": {
-              "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}$" },
+              "name": { "type": "string", "pattern": "^[a-z_][a-z0-9_]{0,63}$" },
               "label": { "type": "string", "maxLength": 80 },
-              "inject": {
-                "type": "object", "required": ["header", "format"],
-                "properties": {
-                  "header": { "type": "string", "pattern": "^[A-Za-z0-9-]{1,64}$" },
-                  "format": { "type": "string", "maxLength": 200, "pattern": "\\{secret(_b64)?\\}" }
-                },
-                "additionalProperties": false
-              }
+              "secret": { "type": "boolean" }
             },
             "additionalProperties": false
           }

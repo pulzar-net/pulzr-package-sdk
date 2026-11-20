@@ -71,17 +71,21 @@ module.
 ## The host
 
 `pulzr_host` is what the platform's services import to run modules: one
-instance per install, the fuel and memory limits, the `pz` host functions,
-`http` only to declared hosts with sealed credentials injected. Each kind's
-routing (which install an event is for, which answers are taken) is the
-calling service's.
+instance per install, the fuel and memory limits, the `pz` host functions
+(`http` only to declared hosts, credentials filled in by the host and hidden
+from the module, a GET cache, batches), and metering per install, module and
+day. Each kind's routing (which install an event is for, which answers are
+taken) is the calling service's.
 
 ```python
 import pulzr_host
 
-host = pulzr_host.Host()
+host = pulzr_host.Host(max_fuel=100_000_000)      # the service's own cap
 module = host.load(wasm, manifest['adapter'], name='acme-gateway 1.0.0')
-answer = module.instance('org-a').call({'event': 'tick', 'now': 1795000000.0})
+instance = module.instance('org-a/acme-gateway', state=store, cache=cache)
+answer = instance.call({'event': 'tick', 'now': 1795000000.0}, credentials={'api_key': '...'})
+for install, module_name, day, usage in host.usage.drain():
+    ...                                            # into the service's metering
 ```
 
 The schemas in `python/pulzr_pkg/schema/` are the Pulzr protocol's
