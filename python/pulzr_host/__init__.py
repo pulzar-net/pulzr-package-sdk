@@ -68,7 +68,8 @@ def _sig(t):
 
 
 class Usage:
-    """What modules cost, per (install, module, UTC day): calls, fuel used, CPU
+    """What modules cost, per (install, module, UTC day), with the labels the
+    caller gave the instance (its organization, package and version): calls, fuel used, CPU
     milliseconds, traps (and of them timeouts: fuel run out), the peak of linear memory, HTTP requests made, answered
     from cache and timed out, octets sent and received, and the state held at
     the day's last call. `drain()` hands the totals to the caller's metering."""
@@ -77,10 +78,12 @@ class Usage:
         self._clock = clock
         self._lock = threading.Lock()
         self._rows = {}
+        self._labels = {}
 
-    def add(self, install, module, counts):
+    def add(self, install, module, counts, labels=None):
         day = time.strftime('%Y-%m-%d', time.gmtime(self._clock()))
         with self._lock:
+            self._labels[(install, module)] = dict(labels or {})
             row = self._rows.setdefault((install, module, day), Counter())
             for k, v in counts.items():
                 if k in ('peak_memory', 'state_bytes'):
@@ -89,10 +92,12 @@ class Usage:
                     row[k] += v
 
     def drain(self):
-        """[(install, module, day, {field: value})], and nothing kept."""
+        """[(install, module, day, {field: value}, labels)], and nothing kept."""
         with self._lock:
             rows, self._rows = self._rows, {}
-        return [(i, m, d, {f: c.get(f, 0) for f in FIELDS}) for (i, m, d), c in rows.items()]
+            labels = dict(self._labels)
+        return [(i, m, d, {f: c.get(f, 0) for f in FIELDS}, labels.get((i, m), {}))
+                for (i, m, d), c in rows.items()]
 
 
 class Host:
@@ -138,22 +143,27 @@ class Module:
         self.hosts = list((spec.get('http') or {}).get('hosts') or [])
 
     def instance(self, install, state=None, cache=None, session=None, credentials=None, clock=time.time,
-                 monotonic=time.monotonic):
-        """One install's instance. `state` keeps its state (a StateStore; a
-        MemoryState by default) and `cache` its cached GETs (a Cache);
-        `credentials` are its opened credentials, by field, unless a call
-        brings its own."""
+                 monotonic=time.monotonic, labels=None):
+        """One install's instance. `install` is the caller's opaque key for
+        everything kept apart (state, the GET cache, metering): a gateway
+        package's `<org>/<package>`, a carrier's provider id, since one
+        organization may add the same carrier twice. `state` keeps its state
+        (a StateStore; a MemoryState by default) and `cache` its cached GETs
+        (a Cache); `credentials` are its opened credentials, by field, unless a
+        call brings its own; `labels` (organization, package, version) go into
+        its metering rows."""
         http = Http(self.hosts, session=session, cache=cache if cache is not None else MemoryCache()) \
             if 'http' in self.imported else None
         return Instance(self, install, state if state is not None else MemoryState(clock), http,
-                        credentials or {}, clock, monotonic)
+                        credentials or {}, clock, monotonic, labels)
 
 
 class Instance:
     """A module's instance for one install, made again after any failure."""
 
-    def __init__(self, module, install, state, http, credentials, clock, monotonic):
+    def __init__(self, module, install, state, http, credentials, clock, monotonic, labels=None):
         self.module, self.install = module, install
+        self.labels = dict(labels or {})
         self.name = f'{module.name} for {install}'
         self._state, self._http, self._credentials = state, http, credentials
         self._clock, self._monotonic = clock, monotonic
@@ -279,6 +289,8 @@ class Instance:
                 answer = json.loads(memory.read(store, start, start + length))
                 if not isinstance(answer, dict):
                     raise ValueError('the answer is not an object')
+                # An answer is an answer, an `{"error"}` one included (a
+                # carrier's outage): only traps and malformed answers rest a module.
                 self._failures = 0
                 meter['fuel'] = self.module.fuel - store.get_fuel()
                 meter['peak_memory'] = memory.data_len(store)
@@ -311,7 +323,7 @@ class Instance:
                 meter['cpu_ms'] = int((time.perf_counter() - started) * 1000)
                 if self.module.imported & {'state_get', 'state_set'}:
                     meter['state_bytes'] = self._state.size(self.install)
-                self.module.host.usage.add(self.install, self.module.name, meter)
+                self.module.host.usage.add(self.install, self.module.name, meter, self.labels)
                 self._call = None
 
     @property

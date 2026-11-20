@@ -22,13 +22,14 @@ needs from the platform:
   "runtime": "wasm", "module": "driver.wasm", "sha256": "...",
   "imports": ["http", "state"],
   "http": {"hosts": ["api.example.com"]},
-  "credentials": [{"name": "api_key", "label": "API key", "secret": true}]
+  "credentials": {"type": "object", "required": ["api_key"],
+                  "properties": {"api_key": {"type": "string", "title": "API key", "writeOnly": true}}}
 }
 ```
 
 - `http.hosts`: the only hosts it reaches, HTTPS only.
-- `credentials`: the form an organization's admin fills in when installing
-  the driver. A request names a field as `{{credential.api_key}}` (in a header
+- `credentials`: a JSON Schema of the form an organization's admin fills in
+  when installing the driver (`writeOnly` or `format: password` marks a secret). A request names a field as `{{credential.api_key}}` (in a header
   or the body, never the URL), or `{{basic:user:password}}` for HTTP Basic, and
   the platform fills it in: the driver never holds a secret, and one echoed in
   a response is replaced before the driver reads it. `Request::bearer("api_key")`

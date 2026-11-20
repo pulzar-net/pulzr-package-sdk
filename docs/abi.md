@@ -30,7 +30,8 @@ package), validated by `schema/extension.schema.json#/$defs/module`:
   "limits": {"fuel": 50000000, "memoryMiB": 32, "stateKiB": 64},
   "imports": ["log", "now", "state", "http"],
   "http": {"hosts": ["api.example.com"]},
-  "credentials": [{"name": "api_key", "label": "API key", "secret": true}] }
+  "credentials": {"type": "object", "required": ["api_key"],
+                  "properties": {"api_key": {"type": "string", "title": "API key", "writeOnly": true}}} }
 ```
 
 | Key | |
@@ -41,7 +42,7 @@ package), validated by `schema/extension.schema.json#/$defs/module`:
 | `limits.stateKiB` | the most `state` an install may hold, all keys together; default 64, at most 1024 |
 | `imports` | the host functions the module may import. One it imports but did not declare is refused at install |
 | `http.hosts` | the only hosts `http` reaches, each a name or `*.` and a name; HTTPS only |
-| `credentials` | the fields an organization's admin fills in when installing the module (`secret: true` for one shown once and sealed). The module names them in a request as placeholders the host fills in; it never holds one |
+| `credentials` | a JSON Schema object: the form an admin fills in when installing the module, validated against it. A property with `writeOnly` or `format: password` is secret, shown once and sealed. The module names a property in a request as a placeholder the host fills in; it never holds one |
 
 ## Exports
 
@@ -70,8 +71,10 @@ import. Pointers and lengths are into the module's memory; text is UTF-8.
 | `http` (`"http"`) | `(req_ptr: i32, req_len: i32) -> i32` | makes a request, or an array of them at once, and returns the length of the response (or the array of responses), or -1 past the call's request limit |
 | `http_take` (`"http"`) | `(out_ptr: i32)` | copies that response to `out_ptr`, which has room for the length `http` returned |
 
-**State** is per install: one organization's, for one package, kept across
-its versions and the host's restarts. Keys are 1 to 64 octets; what a module
+**State** is per install: the caller's key for everything kept apart (a
+gateway package's organization and package; a carrier driver's provider, since
+one organization may add the same carrier twice), kept across the module's
+versions and the host's restarts. Keys are 1 to 64 octets; what a module
 must keep between calls (an OAuth token, until its expiry) goes here, since
 its memory may be lost at any time.
 
@@ -108,8 +111,9 @@ whether `http` is allowed for it.
 
 ## Metering
 
-The host meters every call, per install (organization and package), module
-version and UTC day: calls, fuel used and the CPU time it took, peak linear
+The host meters every call, per install, module version and UTC day, labelled
+with the organization and package the caller names, so usage rolls up by
+organization, package, version and day: calls, fuel used and the CPU time it took, peak linear
 memory, traps and of them timeouts (fuel run out), `http` requests made,
 answered from cache and timed out, octets sent and received, and the state an
 install holds. The platform keeps these with its other usage records: they say
@@ -121,13 +125,15 @@ package is applied to.
 A call that traps, runs out of fuel or memory, or answers with something that
 is not its kind's object is logged with the event's kind (never its payload)
 and dropped; the instance is made again. A module that fails five calls in a
-row rests for a minute. What it holds in its memory may be lost at any time;
+row (traps or malformed answers; an answer that reports an error is still an
+answer) rests for a minute. What it holds in its memory may be lost at any time;
 what must survive goes in `state`.
 
 ## Tenancy
 
-The host keeps one instance per organization and module version, so two
-organizations never share a module's memory or state. Which organization an
+The host keeps one instance per install and module version, so two
+installs (two organizations, or one organization's two accounts with the same
+carrier) never share a module's memory, state, cache or credentials. Which organization an
 event is for, and which of its answers the host accepts, is each kind's to
 say and the host's to enforce, never the module's.
 

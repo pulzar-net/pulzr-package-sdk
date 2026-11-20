@@ -8,6 +8,7 @@
     "limits": {"fuel": 10000000, "memoryMiB": 16},
     "imports": ["http"],
     "http": {"hosts": ["api.example.com"]},
-    "credentials": [{"name": "api_key", "label": "API key", "secret": true}]
+    "credentials": {"type": "object", "required": ["api_key"],
+                    "properties": {"api_key": {"type": "string", "title": "API key", "writeOnly": true}}}
   }
 }

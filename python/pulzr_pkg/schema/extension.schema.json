@@ -34,16 +34,12 @@
           "additionalProperties": false
         },
         "credentials": {
-          "description": "The fields an admin fills in when installing the module; requests name them as {{credential.<name>}} placeholders the host fills in.",
-          "type": "array",
-          "items": {
-            "type": "object", "required": ["name", "label"],
-            "properties": {
-              "name": { "type": "string", "pattern": "^[a-z_][a-z0-9_]{0,63}$" },
-              "label": { "type": "string", "maxLength": 80 },
-              "secret": { "type": "boolean" }
-            },
-            "additionalProperties": false
+          "description": "A JSON Schema object of the fields an admin fills in when installing the module: its property names are what requests name as {{credential.<name>}}; a property with writeOnly or format password is secret.",
+          "type": "object",
+          "required": ["type", "properties"],
+          "properties": {
+            "type": { "const": "object" },
+            "properties": { "type": "object", "propertyNames": { "pattern": "^[a-z_][a-z0-9_]{0,63}$" } }
           }
         }
       },

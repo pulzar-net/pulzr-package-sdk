@@ -95,7 +95,7 @@ def test_state_per_install_its_quota_and_ttl(host):
     assert store.get('org-a', b't') is None and store.get('org-a', b'k') == b'v', 'the ttl'
     # It survives the instance: a restart keeps state.
     assert m.instance('org-a', state=store).call({'event': 'tick'}) == {}
-    usage = {i: c for i, _m, _d, c in host.usage.drain()}
+    usage = {i: c for i, _m, _d, c, _l in host.usage.drain()}
     assert usage['org-a']['state_bytes'] == 2 and usage['org-b']['state_bytes'] == 4
 
 
@@ -191,7 +191,11 @@ def test_usage_is_metered_per_install_and_day(host):
     m.instance('org-b').call({'event': 'tick'})
     looping = host.load(wat('(loop $l (br $l))'), {'limits': {'fuel': 1_000_000}}, name='loop')
     looping.instance('org-a').call({'event': 'tick'})
-    rows = {(i, n): c for i, n, _day, c in host.usage.drain()}
+    m.instance('provider-7', labels={'org': 'org-a', 'package': 'onece', 'version': '2.0.0'}).call({'event': 'tick'})
+    drained = host.usage.drain()
+    rows = {(i, n): c for i, n, _day, c, _l in drained}
+    labels = {i: l for i, _n, _d, _c, l in drained}
+    assert labels['provider-7'] == {'org': 'org-a', 'package': 'onece', 'version': '2.0.0'}, 'the caller\'s labels'
     assert rows[('org-a', 'module')]['calls'] == 2 and rows[('org-b', 'module')]['calls'] == 1
     assert rows[('org-a', 'module')]['peak_memory'] == 65536
     assert rows[('org-a', 'loop')]['traps'] == 1 and rows[('org-a', 'loop')]['timeouts'] == 1
@@ -213,3 +217,12 @@ def test_fuel_memory_and_the_breaker(host):
         assert inst.call({'event': 'tick'}) == {}
         assert inst.exports['memory'].size(inst.store) == pages
     assert host.load(wat(answer='[1]'), {}).instance('x').call({'event': 'tick'}) is None
+
+
+def test_an_error_answer_never_rests_a_module(host):
+    """A carrier's outage is answered `{"error": ...}` call after call: those
+    are answers, and only traps and malformed answers count toward resting."""
+    inst = host.load(wat(answer='{"error": {"message": "the carrier is down", "status": 503}}'), {}).instance('p')
+    for _ in range(10):
+        assert inst.call({'op': 'list_sims'}) == {'error': {'message': 'the carrier is down', 'status': 503}}
+    assert inst.resting_until == 0.0

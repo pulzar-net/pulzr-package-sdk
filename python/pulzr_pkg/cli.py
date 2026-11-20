@@ -213,6 +213,8 @@ def cmd_test(args):
             inst = instances.get(install)
             if inst is None:
                 inst = instances[install] = loaded.instance(install, state=state,
+                                                            labels={'org': install, 'package': manifest.get('id'),
+                                                                    'version': manifest.get('version')},
                                                             credentials=case.get('credentials') or {},
                                                             clock=lambda case=case: case.get('now', 0.0))
             total += 1
