@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/pulzar-net/pulzr-protocol/schema/gateway.schema.json",
+  "title": "Gateway support package, version 1",
+  "description": "A package's gateway.json (manifest) and commands.json (commands). See GATEWAY.md.",
+  "$defs": {
+    "capability": {
+      "enum": ["settings.read", "settings.write", "settings.profiles", "ble.admit", "reboot", "firmware",
+               "log", "credentials.rotate", "remote-ui", "shell", "location", "uplink.status", "radio.config"]
+    },
+    "grant": {
+      "type": "object",
+      "required": ["allow", "topic"],
+      "properties": {
+        "allow": { "enum": ["publish", "subscribe"] },
+        "topic": { "type": "string", "pattern": "^[^#\\s]+$", "maxLength": 256 }
+      },
+      "additionalProperties": false
+    },
+    "manifest": {
+      "type": "object",
+      "required": ["schema", "id", "version", "name", "vendor", "models", "radios", "identity", "adoption", "data", "management", "adapter"],
+      "properties": {
+        "schema": { "const": 1 },
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,62}$" },
+        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "vendor": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "models": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "label"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,31}$" },
+              "label": { "type": "string", "maxLength": 80 }
+            },
+            "additionalProperties": false
+          }
+        },
+        "radios": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["lorawan", "ble", "zigbee", "zwave", "thread", "modbus", "ip"] } },
+        "identity": {
+          "type": "object",
+          "required": ["scheme", "label"],
+          "properties": {
+            "scheme": { "enum": ["eui", "mac", "serial"] },
+            "label": { "type": "string", "maxLength": 120 },
+            "gatewayId": { "enum": ["eui64", "eui64-mac48", "serial-hash"] }
+          },
+          "additionalProperties": false
+        },
+        "adoption": {
+          "type": "object",
+          "required": ["method", "fields"],
+          "properties": {
+            "method": { "enum": ["qr", "credential", "vendor-api"] },
+            "fields": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-z][a-zA-Z0-9]{0,31}$" } },
+            "connection": {
+              "type": "object",
+              "description": "What the owner types into the gateway; values may hold {broker.host}, {broker.port}, {identity}, {password} and any adoption field in braces.",
+              "additionalProperties": { "type": ["string", "number", "boolean"] }
+            }
+          },
+          "additionalProperties": false
+        },
+        "data": {
+          "type": "object",
+          "required": ["path", "format"],
+          "properties": {
+            "path": { "enum": ["mqtt", "basics-station", "semtech-udp", "http"] },
+            "topics": { "type": "array", "items": { "type": "string" } },
+            "format": { "type": "string", "maxLength": 64 }
+          },
+          "additionalProperties": false
+        },
+        "broker": {
+          "type": "object",
+          "properties": {
+            "gateway": { "type": "array", "items": { "$ref": "#/$defs/grant" } },
+            "adapter": { "type": "array", "items": { "$ref": "#/$defs/grant" } }
+          },
+          "additionalProperties": false
+        },
+        "management": {
+          "type": "object",
+          "required": ["path", "capabilities"],
+          "properties": {
+            "path": { "enum": ["mqtt", "api", "ssh"] },
+            "capabilities": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/capability" } },
+            "settings": { "type": "string" },
+            "state": { "type": "string" },
+            "commands": { "type": "string" },
+            "concurrency": { "type": "integer", "minimum": 1, "maximum": 16 },
+            "timeouts": {
+              "type": "object",
+              "propertyNames": { "pattern": "^[a-z.]{1,32}$" },
+              "additionalProperties": { "type": "integer", "minimum": 1, "maximum": 86400 }
+            },
+            "firmwareSources": {
+              "type": "array", "uniqueItems": true, "maxItems": 8,
+              "items": { "type": "string", "pattern": "^https://[^/?#]+(/[^?#]*)?$", "maxLength": 512 }
+            },
+            "remoteUi": {
+              "type": "object",
+              "required": ["port", "scheme"],
+              "properties": {
+                "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+                "scheme": { "enum": ["http", "https"] }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "adapter": {
+          "description": "The package's translator: an extension module (EXTENSIONS.md; its keys are extension.schema.json's module, checked equal by the tests) and the prefix it speaks as. GATEWAY.md, The adapter module.",
+          "type": "object",
+          "required": ["runtime", "module", "sha256", "prefix"],
+          "properties": {
+            "runtime": { "const": "wasm" },
+            "module": { "type": "string", "pattern": "^[A-Za-z0-9._-]+\\.wasm$" },
+            "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "limits": {
+              "type": "object",
+              "properties": {
+                "fuel": { "type": "integer", "minimum": 100000, "maximum": 1000000000 },
+                "memoryMiB": { "type": "integer", "minimum": 1, "maximum": 256 },
+                "stateKiB": { "type": "integer", "minimum": 1, "maximum": 1024 }
+              },
+              "additionalProperties": false
+            },
+            "imports": { "type": "array", "uniqueItems": true, "items": { "enum": ["log", "now", "state", "http"] } },
+            "http": {
+              "type": "object", "required": ["hosts"],
+              "properties": {
+                "hosts": { "type": "array", "minItems": 1, "uniqueItems": true,
+                           "items": { "type": "string", "pattern": "^(\\*\\.)?[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$" } }
+              },
+              "additionalProperties": false
+            },
+            "credentials": {
+              "type": "array",
+              "items": {
+                "type": "object", "required": ["name", "label", "inject"],
+                "properties": {
+                  "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,31}$" },
+                  "label": { "type": "string", "maxLength": 80 },
+                  "inject": {
+                    "type": "object", "required": ["header", "format"],
+                    "properties": {
+                      "header": { "type": "string", "pattern": "^[A-Za-z0-9-]{1,64}$" },
+                      "format": { "type": "string", "maxLength": 200, "pattern": "\\{secret(_b64)?\\}" }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "prefix": { "type": "string", "pattern": "^[a-z0-9]{2,16}$" }
+          },
+          "dependentRequired": { "http": ["imports"] },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "commandParam": {
+      "description": "A JSON Schema for one param; `secret: true` marks a value the platform seals and shows nowhere.",
+      "type": "object",
+      "properties": { "secret": { "type": "boolean" } }
+    },
+    "command": {
+      "type": "object",
+      "required": ["device", "label"],
+      "properties": {
+        "capability": { "$ref": "#/$defs/capability" },
+        "device": { "enum": ["gw", "ble"] },
+        "label": { "type": "string", "maxLength": 80 },
+        "params": {
+          "type": "object",
+          "properties": {
+            "type": { "const": "object" },
+            "properties": { "type": "object", "additionalProperties": { "$ref": "#/$defs/commandParam" } }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "commands": {
+      "type": "object",
+      "required": ["schema", "commands"],
+      "properties": {
+        "schema": { "const": 1 },
+        "commands": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[a-z0-9_.-]{1,64}$" },
+          "additionalProperties": { "$ref": "#/$defs/command" }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

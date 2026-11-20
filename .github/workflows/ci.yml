@@ -1,0 +1,42 @@
+# The host and CLI (pytest), the guest crate (fmt, clippy, tests), the worked
+# example and both templates through pulzr-pkg exactly as a package's own CI
+# runs it.
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: rustup target add wasm32-unknown-unknown && rustup component add rustfmt clippy
+      - name: Host and CLI
+        run: |
+          python -m pip install --quiet "./python[test]"
+          python -m pytest -q python/tests
+      - name: Guest crate
+        run: |
+          cargo fmt --all --check
+          cargo clippy --workspace --all-targets -- -D warnings
+          cargo test --workspace
+      - name: The worked example, through the action's own steps
+        uses: ./
+        with:
+          working-directory: examples/beacon-gateway
+      - name: Both templates, against this checkout's crate
+        run: |
+          set -euo pipefail
+          root="$PWD"
+          for kind in gateway carrier; do
+            dir="$RUNNER_TEMP/t-$kind"
+            (cd "$RUNNER_TEMP" && pulzr-pkg new "$kind" "t-$kind")
+            printf '\n[patch."https://github.com/pulzar-net/pulzr-package-sdk"]\npulzr-package = { path = "%s/guest" }\n' "$root" >> "$dir/Cargo.toml"
+            (cd "$dir" && pulzr-pkg build && pulzr-pkg validate && pulzr-pkg test -v)
+          done

@@ -1,0 +1,57 @@
+name: Pulzr extension module
+description: Build, validate and test a Pulzr extension module (a gateway support package or a carrier driver) and, on a version tag, release exactly the files the platform installs from.
+branding:
+  icon: package
+  color: blue
+inputs:
+  working-directory:
+    description: The package's directory.
+    default: .
+  release:
+    description: "'true' to publish a GitHub release for the tag (the tag must be v<the manifest's version>)."
+    default: 'false'
+  manifest:
+    description: The manifest, if not gateway.json or driver.json.
+    default: ''
+runs:
+  using: composite
+  steps:
+    - name: Rust for wasm32
+      shell: bash
+      run: rustup target add wasm32-unknown-unknown
+    - name: pulzr-pkg
+      shell: bash
+      run: python3 -m pip install --quiet "${{ github.action_path }}/python"
+    - name: Build
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: pulzr-pkg ${{ inputs.manifest && format('--manifest {0}', inputs.manifest) }} build
+    - name: Validate
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: pulzr-pkg ${{ inputs.manifest && format('--manifest {0}', inputs.manifest) }} validate
+    - name: Test
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: pulzr-pkg ${{ inputs.manifest && format('--manifest {0}', inputs.manifest) }} test -v
+    - name: The tag is the manifest's version
+      if: inputs.release == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        set -euo pipefail
+        manifest="$(pulzr-pkg ${{ inputs.manifest && format('--manifest {0}', inputs.manifest) }} assets | head -n1)"
+        version="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$manifest")"
+        [ "${GITHUB_REF_NAME}" = "v${version}" ] || { echo "the tag ${GITHUB_REF_NAME} is not v${version}" >&2; exit 1; }
+    - name: Release
+      if: inputs.release == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        mapfile -t assets < <(pulzr-pkg ${{ inputs.manifest && format('--manifest {0}', inputs.manifest) }} assets)
+        # The manifest as this build wrote it: its sha256 is this module's,
+        # whatever a build elsewhere recorded (builds embed their paths).
+        gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --notes "Built by pulzr-pkg." "${assets[@]}"

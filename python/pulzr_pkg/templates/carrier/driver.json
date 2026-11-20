@@ -1,0 +1,14 @@
+{
+  "id": "{{name}}",
+  "version": "0.1.0",
+  "name": "{{name}}",
+  "driver": {
+    "runtime": "wasm", "module": "driver.wasm",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "limits": {"fuel": 10000000, "memoryMiB": 16},
+    "imports": ["http"],
+    "http": {"hosts": ["api.example.com"]},
+    "credentials": [{"name": "api", "label": "API key",
+                     "inject": {"header": "Authorization", "format": "Bearer {secret}"}}]
+  }
+}

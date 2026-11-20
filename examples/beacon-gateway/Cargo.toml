@@ -1,0 +1,13 @@
+[package]
+name = "example-beacon-gateway"
+version = "1.0.0"
+description = "A gateway support package for a made-up beacon gateway: the worked example of pulzr-package"
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pulzr-package = { path = "../../guest" }

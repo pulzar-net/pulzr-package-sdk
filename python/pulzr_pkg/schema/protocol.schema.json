@@ -1,0 +1,497 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/pulzar-net/pulzr-protocol/schema/protocol.schema.json",
+  "title": "Pulzar protocol, version 1",
+  "description": "Message bodies between devices or adapters and the Pulzar platform. See README.md.",
+  "$defs": {
+    "deviceKey": {
+      "type": "string",
+      "pattern": "^(lorawan|ble|zigbee|thread|ip|gw):[0-9a-f]{16}$|^matter:[0-9a-f]{16}\\.[0-9a-f]{16}$|^zwave:[0-9a-f]{8}\\.([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-2][0-9]|23[0-2]|25[6-9]|2[6-9][0-9]|[3-9][0-9][0-9]|[1-3][0-9]{3}|4000)$|^modbus:[0-9a-f]{16}\\.[a-z0-9-]{1,32}\\.([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-3][0-9]|24[0-7])$|^ext:[a-z0-9-]{1,32}\\.[A-Za-z0-9._:-]{1,128}$"
+    },
+    "time": { "type": "number", "minimum": 0 },
+    "zigbeeNwk": { "type": "string", "pattern": "^[0-9a-f]{4}$" },
+    "zwaveNode": { "type": "integer", "minimum": 1, "maximum": 4000 },
+    "seq": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+    "value": { "type": ["number", "boolean", "string"] },
+    "settingValue": { "type": ["number", "boolean", "string", "object", "array"] },
+    "reading": {
+      "type": "object",
+      "required": ["ts", "v"],
+      "properties": {
+        "ts": { "$ref": "#/$defs/time" },
+        "v": { "type": "object", "additionalProperties": { "$ref": "#/$defs/value" }, "propertyNames": { "pattern": "^[A-Za-z0-9_.-]{1,64}$" } }
+      },
+      "additionalProperties": false
+    },
+    "raw": {
+      "type": "object",
+      "required": ["ts", "b64"],
+      "properties": {
+        "ts": { "$ref": "#/$defs/time" },
+        "port": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "b64": { "type": "string", "contentEncoding": "base64", "maxLength": 8192 }
+      },
+      "additionalProperties": false
+    },
+    "rx": {
+      "type": "object",
+      "required": ["via"],
+      "properties": {
+        "via": { "type": "string", "pattern": "^(gw|link):[A-Za-z0-9._:-]{1,64}$" },
+        "rssi": { "type": "number" },
+        "snr": { "type": "number" },
+        "lqi": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "ts": { "$ref": "#/$defs/time" },
+        "time": { "enum": ["gps", "ntp", "device", "received"] }
+      },
+      "additionalProperties": false
+    },
+    "link": {
+      "type": "object",
+      "properties": {
+        "lorawan": {
+          "type": "object",
+          "properties": {
+            "fcnt": { "type": "integer", "minimum": 0 },
+            "f_port": { "type": "integer", "minimum": 0, "maximum": 255 },
+            "dev_addr": { "type": "string", "pattern": "^[0-9a-f]{8}$" },
+            "adr": { "type": "boolean" },
+            "dr": { "type": "integer", "minimum": 0, "maximum": 15 },
+            "sf": { "type": "integer", "minimum": 5, "maximum": 12 },
+            "freq": { "type": "integer", "minimum": 0 },
+            "airtime_ms": { "type": "number", "minimum": 0 },
+            "confirmed": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        },
+        "ble": {
+          "type": "object",
+          "properties": {
+            "adv": { "type": "string", "maxLength": 32 },
+            "adv_type": { "type": "integer", "minimum": 0, "maximum": 255 },
+            "parsed": { "type": "object" },
+            "tx_power": { "type": "integer" }
+          },
+          "additionalProperties": false
+        },
+        "zigbee": {
+          "type": "object",
+          "properties": {
+            "endpoint": { "type": "integer", "minimum": 0, "maximum": 255 },
+            "cluster": { "type": "integer", "minimum": 0, "maximum": 65535 },
+            "profile": { "type": "integer", "minimum": 0, "maximum": 65535 },
+            "lqi": { "type": "integer", "minimum": 0, "maximum": 255 },
+            "rssi": { "type": "number" },
+            "nwk": { "$ref": "#/$defs/zigbeeNwk" },
+            "last_hop": { "$ref": "#/$defs/zigbeeNwk" },
+            "dst_endpoint": { "type": "integer", "minimum": 0, "maximum": 255 },
+            "group": { "type": "integer", "minimum": 0, "maximum": 65535 },
+            "command": { "type": "integer", "minimum": 0, "maximum": 255 },
+            "manufacturer": { "type": "integer", "minimum": 0, "maximum": 65535 }
+          },
+          "additionalProperties": false
+        },
+        "zwave": {
+          "type": "object",
+          "properties": {
+            "node": { "$ref": "#/$defs/zwaveNode" },
+            "endpoint": { "type": "integer", "minimum": 0, "maximum": 127 },
+            "cc": { "type": "integer", "minimum": 0, "maximum": 65535 },
+            "rssi": { "type": "number" },
+            "repeaters": { "type": "array", "items": { "$ref": "#/$defs/zwaveNode" }, "maxItems": 4 }
+          },
+          "additionalProperties": false
+        },
+        "modbus": {
+          "type": "object",
+          "properties": {
+            "function": { "type": "integer", "minimum": 1, "maximum": 127 },
+            "address": { "type": "integer", "minimum": 0, "maximum": 65535 },
+            "count": { "type": "integer", "minimum": 1, "maximum": 125 },
+            "latency_ms": { "type": "number", "minimum": 0 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "up": {
+      "type": "object",
+      "required": ["v"],
+      "properties": {
+        "v": { "const": 1 },
+        "seq": { "$ref": "#/$defs/seq" },
+        "dedup": { "type": "string", "pattern": "^[0-9a-f]{16,64}$" },
+        "r": { "type": "array", "items": { "$ref": "#/$defs/reading" }, "maxItems": 100 },
+        "raw": { "$ref": "#/$defs/raw" },
+        "rx": { "type": "array", "items": { "$ref": "#/$defs/rx" }, "maxItems": 64 },
+        "link": { "$ref": "#/$defs/link" }
+      },
+      "anyOf": [ { "required": ["r"] }, { "required": ["raw"] } ],
+      "oneOf": [ { "required": ["seq"] }, { "required": ["dedup"] } ],
+      "additionalProperties": false
+    },
+    "event": {
+      "type": "object",
+      "required": ["v", "ts", "name"],
+      "properties": {
+        "v": { "const": 1 },
+        "seq": { "$ref": "#/$defs/seq" },
+        "ts": { "$ref": "#/$defs/time" },
+        "name": { "type": "string", "pattern": "^[a-z0-9_.-]{1,64}$" },
+        "sev": { "enum": ["critical", "warning", "info"] },
+        "data": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "state": {
+      "type": "object",
+      "required": ["v"],
+      "properties": {
+        "v": { "const": 1 },
+        "online": { "type": "boolean" },
+        "last_heard": { "$ref": "#/$defs/time" },
+        "fw": { "type": "string", "maxLength": 64 },
+        "package": { "type": "string", "maxLength": 80 },
+        "battery": { "type": "number", "minimum": 0, "maximum": 100 },
+        "path": { "type": "string", "maxLength": 64 },
+        "remote": { "type": "boolean" },
+        "ota": {
+          "type": ["object", "null"],
+          "properties": {
+            "version": { "type": "string" },
+            "phase": { "enum": ["downloading", "staged", "installing", "confirmed", "rolled_back", "failed"] },
+            "progress": { "type": "number", "minimum": 0, "maximum": 1 },
+            "error": { "type": ["string", "null"] }
+          }
+        },
+        "diag": { "type": "object" },
+        "network": { "$ref": "#/$defs/network" },
+        "interview": {
+          "type": "object",
+          "properties": {
+            "zigbee": { "$ref": "#/$defs/zigbeeInterview" },
+            "zwave": { "$ref": "#/$defs/zwaveInterview" },
+            "matter": { "$ref": "#/$defs/matterInterview" }
+          },
+          "additionalProperties": false
+        },
+        "radios": {
+          "type": "object",
+          "properties": {
+            "detected": { "type": "array", "items": { "$ref": "#/$defs/detectedRadio" }, "maxItems": 32 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": true
+    },
+    "network": {
+      "type": "object",
+      "required": ["protocol", "state"],
+      "properties": {
+        "protocol": { "enum": ["zigbee", "zwave", "thread", "matter"] },
+        "state": { "enum": ["forming", "up", "degraded", "down", "restoring"] },
+        "fabric_id": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
+        "compressed_fabric_id": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
+        "node_ids_left": { "type": "integer", "minimum": 0 },
+        "radio": { "$ref": "#/$defs/radioId" },
+        "channel": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "pan_id": { "type": "string", "pattern": "^[0-9a-f]{4}$" },
+        "ext_pan_id": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
+        "home_id": { "type": "string", "pattern": "^[0-9a-f]{8}$" },
+        "region": { "type": "string", "maxLength": 16 },
+        "devices": { "type": "integer", "minimum": 0 },
+        "joining_until": { "$ref": "#/$defs/time" },
+        "backup_at": { "$ref": "#/$defs/time" },
+        "name": { "type": "string", "maxLength": 16 },
+        "role": { "enum": ["disabled", "detached", "child", "router", "leader"] },
+        "dataset_id": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
+        "active_timestamp": { "type": "integer", "minimum": 0 },
+        "routers": { "type": "integer", "minimum": 0 },
+        "border_routers": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "zigbeeInterview": {
+      "type": "object",
+      "required": ["ieee", "endpoints"],
+      "properties": {
+        "ieee": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
+        "nwk": { "$ref": "#/$defs/zigbeeNwk" },
+        "type": { "enum": ["router", "end_device"] },
+        "manufacturer_code": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "manufacturer_name": { "type": "string", "maxLength": 64 },
+        "model_id": { "type": "string", "maxLength": 64 },
+        "power_source": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "app_version": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "stack_version": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "zcl_version": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "hw_version": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "date_code": { "type": "string", "maxLength": 32 },
+        "build_id": { "type": "string", "maxLength": 32 },
+        "endpoints": {
+          "type": "array", "maxItems": 240,
+          "items": {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": { "type": "integer", "minimum": 1, "maximum": 254 },
+              "profile": { "type": "integer", "minimum": 0, "maximum": 65535 },
+              "device_id": { "type": "integer", "minimum": 0, "maximum": 65535 },
+              "in": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 65535 }, "maxItems": 128 },
+              "out": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 65535 }, "maxItems": 128 }
+            },
+            "additionalProperties": false
+          }
+        },
+        "at": { "$ref": "#/$defs/time" },
+        "complete": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "matterInterview": {
+      "type": "object",
+      "required": ["endpoints"],
+      "properties": {
+        "vendor_id": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "product_id": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "vendor_name": { "type": "string", "maxLength": 64 },
+        "product_name": { "type": "string", "maxLength": 64 },
+        "node_label": { "type": "string", "maxLength": 64 },
+        "hardware_version": { "type": "string", "maxLength": 64 },
+        "software_version": { "type": "string", "maxLength": 64 },
+        "serial_number": { "type": "string", "maxLength": 64 },
+        "unique_id": { "type": "string", "maxLength": 64 },
+        "endpoints": {
+          "type": "array", "maxItems": 256,
+          "items": {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": { "type": "integer", "minimum": 0, "maximum": 65534 },
+              "device_types": {
+                "type": "array", "maxItems": 16,
+                "items": {
+                  "type": "object", "required": ["id"],
+                  "properties": {
+                    "id": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+                    "revision": { "type": "integer", "minimum": 0, "maximum": 65535 }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "server": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 4294967295 }, "maxItems": 128 },
+              "client": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 4294967295 }, "maxItems": 128 },
+              "parts": { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 65534 }, "maxItems": 256 }
+            },
+            "additionalProperties": false
+          }
+        },
+        "at": { "$ref": "#/$defs/time" },
+        "complete": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "zwaveInterview": {
+      "type": "object",
+      "required": ["manufacturer", "product_type", "product_id"],
+      "properties": {
+        "manufacturer": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "product_type": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "product_id": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "firmware": { "type": "string", "pattern": "^[0-9]{1,3}\\.[0-9]{1,3}(\\.[0-9]{1,3})?$" },
+        "sdk": { "type": "string", "maxLength": 16 },
+        "security": { "enum": ["none", "s0", "s2_unauthenticated", "s2_authenticated", "s2_access_control"] },
+        "listening": { "type": "boolean" },
+        "endpoints": { "type": "integer", "minimum": 0, "maximum": 127 },
+        "ccs": {
+          "type": "array", "maxItems": 256,
+          "items": {
+            "type": "object",
+            "required": ["cc"],
+            "properties": {
+              "cc": { "type": "integer", "minimum": 0, "maximum": 65535 },
+              "version": { "type": "integer", "minimum": 0, "maximum": 255 },
+              "secure": { "type": "boolean" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "at": { "$ref": "#/$defs/time" },
+        "complete": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "zigbeeZcl": {
+      "type": "object",
+      "required": ["endpoint", "cluster", "frame", "response"],
+      "properties": {
+        "endpoint": { "type": "integer", "minimum": 1, "maximum": 254 },
+        "src_endpoint": { "type": "integer", "minimum": 1, "maximum": 254 },
+        "cluster": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "profile": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "frame": { "type": "string", "contentEncoding": "base64", "maxLength": 1024 },
+        "response": { "type": "boolean" },
+        "timeout_ms": { "type": "integer", "minimum": 0, "maximum": 600000 },
+        "label": { "type": "string", "maxLength": 96 }
+      },
+      "additionalProperties": false
+    },
+    "zigbeeZdo": {
+      "type": "object",
+      "required": ["cluster", "payload", "response"],
+      "properties": {
+        "cluster": { "type": "integer", "minimum": 0, "maximum": 32767 },
+        "payload": { "type": "string", "contentEncoding": "base64", "maxLength": 1024 },
+        "response": { "type": "boolean" },
+        "label": { "type": "string", "maxLength": 96 }
+      },
+      "additionalProperties": false
+    },
+    "zigbeeWait": {
+      "type": "object",
+      "required": ["ms"],
+      "properties": {
+        "ms": { "type": "integer", "minimum": 0, "maximum": 600000 },
+        "label": { "type": "string", "maxLength": 96 }
+      },
+      "additionalProperties": false
+    },
+    "zigbeeOta": {
+      "type": "object",
+      "required": ["url", "sha256"],
+      "properties": {
+        "url": { "type": "string", "pattern": "^https://", "maxLength": 2048 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "file_version": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+        "size": { "type": "integer", "minimum": 1, "maximum": 16777216 },
+        "label": { "type": "string", "maxLength": 96 }
+      },
+      "additionalProperties": false
+    },
+    "radioId": { "type": "string", "pattern": "^(usb|uart|lan)-[a-z0-9._-]{1,96}$" },
+    "detectedRadio": {
+      "type": "object",
+      "required": ["id", "bus", "state"],
+      "properties": {
+        "id": { "$ref": "#/$defs/radioId" },
+        "bus": { "enum": ["usb", "uart", "lan"] },
+        "port": { "type": "string", "maxLength": 64 },
+        "path": { "type": "string", "maxLength": 64 },
+        "adapter": { "type": ["string", "null"], "pattern": "^[a-z0-9][a-z0-9-]{1,62}$" },
+        "label": { "type": "string", "maxLength": 120 },
+        "protocol": { "enum": ["zigbee", "zwave", "thread", "ble", null] },
+        "protocols": { "type": "array", "items": { "enum": ["zigbee", "zwave", "thread", "ble"] }, "uniqueItems": true },
+        "ncp": { "enum": ["ezsp", "znp", "deconz", "zwave-serial", "spinel", "hci", null] },
+        "firmware": { "type": ["string", "null"], "maxLength": 64 },
+        "ezsp": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "chip": { "type": "string", "maxLength": 64 },
+        "address": { "type": "string", "maxLength": 64 },
+        "usb": {
+          "type": "object",
+          "required": ["vid", "pid"],
+          "properties": {
+            "vid": { "type": "string", "pattern": "^[0-9a-f]{4}$" },
+            "pid": { "type": "string", "pattern": "^[0-9a-f]{4}$" },
+            "interface": { "type": "integer", "minimum": 0, "maximum": 255 },
+            "manufacturer": { "type": "string", "maxLength": 128 },
+            "product": { "type": "string", "maxLength": 128 },
+            "serial": { "type": "string", "maxLength": 128 }
+          },
+          "additionalProperties": false
+        },
+        "probe": { "enum": ["ok", "no-answer", "unavailable", "not-allowed", "error"] },
+        "use": { "enum": ["modbus", null] },
+        "state": { "enum": ["free", "unidentified", "in-use", "missing", "unsupported"] },
+        "since": { "$ref": "#/$defs/time" }
+      },
+      "additionalProperties": false
+    },
+    "topology": {
+      "type": "object",
+      "required": ["v", "ts", "edges"],
+      "properties": {
+        "v": { "const": 1 },
+        "ts": { "$ref": "#/$defs/time" },
+        "protocol": { "enum": ["zigbee", "zwave", "thread", "ble", "lorawan", "modbus", "lan", "backhaul"] },
+        "source": { "enum": ["passive", "scan"] },
+        "complete": { "type": "boolean" },
+        "edges": { "type": "array", "items": { "$ref": "#/$defs/edge" }, "maxItems": 2000 }
+      },
+      "additionalProperties": false
+    },
+    "edge": {
+      "type": "object",
+      "required": ["from", "to", "kind"],
+      "properties": {
+        "from": { "$ref": "#/$defs/deviceKey" },
+        "to": { "$ref": "#/$defs/deviceKey" },
+        "kind": { "enum": ["route", "neighbor", "heard", "relay", "bus", "lan", "backhaul"] },
+        "quality": {
+          "type": "object",
+          "properties": {
+            "lqi": { "type": "integer", "minimum": 0, "maximum": 255 },
+            "rssi": { "type": "number" },
+            "snr": { "type": "number" },
+            "lq_in": { "type": "integer", "minimum": 0, "maximum": 3 },
+            "lq_out": { "type": "integer", "minimum": 0, "maximum": 3 },
+            "cost": { "type": "integer", "minimum": 0, "maximum": 255 }
+          },
+          "additionalProperties": false
+        },
+        "ts": { "$ref": "#/$defs/time" }
+      },
+      "additionalProperties": false
+    },
+    "settings": {
+      "type": "object",
+      "required": ["v", "values"],
+      "properties": {
+        "v": { "const": 1 },
+        "version": { "type": "integer", "minimum": 0 },
+        "values": { "type": "object", "additionalProperties": { "$ref": "#/$defs/settingValue" } },
+        "by": { "type": "string", "maxLength": 64 }
+      },
+      "additionalProperties": false
+    },
+    "cmd": {
+      "type": "object",
+      "required": ["v", "id", "name"],
+      "properties": {
+        "v": { "const": 1 },
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9-]{8,64}$" },
+        "name": { "type": "string", "pattern": "^[a-z0-9_.-]{1,64}$" },
+        "params": { "type": "object" },
+        "by": {
+          "type": "object",
+          "properties": { "sub": { "type": "string" }, "role": { "type": "string" } }
+        },
+        "expires": { "$ref": "#/$defs/time" }
+      },
+      "allOf": [
+        { "if": { "properties": { "name": { "const": "zigbee.zcl" } } }, "then": { "properties": { "params": { "$ref": "#/$defs/zigbeeZcl" } }, "required": ["params"] } },
+        { "if": { "properties": { "name": { "const": "zigbee.zdo" } } }, "then": { "properties": { "params": { "$ref": "#/$defs/zigbeeZdo" } }, "required": ["params"] } },
+        { "if": { "properties": { "name": { "const": "zigbee.wait" } } }, "then": { "properties": { "params": { "$ref": "#/$defs/zigbeeWait" } }, "required": ["params"] } },
+        { "if": { "properties": { "name": { "const": "zigbee.ota" } } }, "then": { "properties": { "params": { "$ref": "#/$defs/zigbeeOta" } }, "required": ["params"] } }
+      ],
+      "additionalProperties": false
+    },
+    "cmdResult": {
+      "type": "object",
+      "required": ["v", "id", "status"],
+      "properties": {
+        "v": { "const": 1 },
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9-]{8,64}$" },
+        "status": { "enum": ["queued", "sent", "delivered", "ok", "refused", "failed"] },
+        "reason": { "enum": ["local_only", "remote_false", "unknown", "invalid", "busy", "error", "undeliverable", "expired"] },
+        "detail": { "type": "string", "maxLength": 500 },
+        "data": { "type": "object" }
+      },
+      "allOf": [
+        { "if": { "properties": { "status": { "enum": ["refused", "failed"] } } }, "then": { "required": ["reason"] } }
+      ],
+      "additionalProperties": false
+    }
+  }
+}

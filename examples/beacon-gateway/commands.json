@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "commands": {
+    "reboot": {"capability": "reboot", "device": "gw", "label": "Reboot",
+               "params": {"type": "object", "properties": {}}}
+  }
+}

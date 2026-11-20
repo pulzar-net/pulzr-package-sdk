@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "id": "example-beacon-gateway",
+  "version": "1.0.0",
+  "name": "Example Beacon Gateway",
+  "vendor": "Example Networks",
+  "models": [
+    {
+      "id": "bg1",
+      "label": "Example BG1"
+    }
+  ],
+  "radios": [
+    "ble"
+  ],
+  "identity": {
+    "scheme": "mac",
+    "label": "MAC on the base",
+    "gatewayId": "eui64-mac48"
+  },
+  "adoption": {
+    "method": "credential",
+    "fields": [
+      "mac",
+      "model"
+    ],
+    "connection": {
+      "protocol": "mqtt",
+      "host": "{broker.host}",
+      "port": "{broker.port}",
+      "tls": true,
+      "username": "{identity}",
+      "password": "{password}",
+      "client_id": "{mac}",
+      "publish_topic": "example/up/{mac}",
+      "subscribe_topic": "example/down/{mac}"
+    }
+  },
+  "data": {
+    "path": "mqtt",
+    "topics": [
+      "example/up/{mac}"
+    ],
+    "format": "example-json"
+  },
+  "broker": {
+    "gateway": [
+      {
+        "allow": "publish",
+        "topic": "example/up/{mac}"
+      },
+      {
+        "allow": "publish",
+        "topic": "example/answer/{mac}"
+      },
+      {
+        "allow": "subscribe",
+        "topic": "example/down/{mac}"
+      }
+    ],
+    "adapter": [
+      {
+        "allow": "subscribe",
+        "topic": "example/up/+"
+      },
+      {
+        "allow": "subscribe",
+        "topic": "example/answer/+"
+      },
+      {
+        "allow": "publish",
+        "topic": "example/down/+"
+      }
+    ]
+  },
+  "management": {
+    "path": "mqtt",
+    "capabilities": [
+      "reboot"
+    ],
+    "commands": "commands.json",
+    "concurrency": 1,
+    "timeouts": {
+      "gateway": 30
+    }
+  },
+  "adapter": {
+    "runtime": "wasm",
+    "module": "adapter.wasm",
+    "sha256": "d9790378c454a83210e07da6d2e9416011c022016d6c0830e1891b81733bddc2",
+    "prefix": "exbg",
+    "limits": {
+      "fuel": 10000000,
+      "memoryMiB": 16
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "id": "{{name}}",
+  "version": "0.1.0",
+  "name": "{{name}}",
+  "vendor": "Vendor",
+  "models": [{"id": "m1", "label": "Model 1"}],
+  "radios": ["ble"],
+  "identity": {"scheme": "mac", "label": "MAC on the label", "gatewayId": "eui64-mac48"},
+  "adoption": {"method": "credential", "fields": ["mac", "model"]},
+  "data": {"path": "mqtt", "topics": ["chgme/up/{mac}"], "format": "vendor-json"},
+  "broker": {
+    "gateway": [{"allow": "publish", "topic": "chgme/up/{mac}"},
+                {"allow": "subscribe", "topic": "chgme/down/{mac}"}],
+    "adapter": [{"allow": "subscribe", "topic": "chgme/up/+"},
+                {"allow": "publish", "topic": "chgme/down/+"}]
+  },
+  "management": {"path": "mqtt", "capabilities": [], "commands": "commands.json", "concurrency": 1,
+                 "timeouts": {"gateway": 30}},
+  "adapter": {"runtime": "wasm", "module": "adapter.wasm",
+              "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+              "prefix": "chgme", "limits": {"fuel": 10000000, "memoryMiB": 16}}
+}

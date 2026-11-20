@@ -1,0 +1,2 @@
+{"name": "a tick says nothing", "event": {"event": "tick", "now": 1795000000.0}, "expect": {}}
+{"name": "a message is the gateway's state", "event": {"event": "message", "topic": "chgme/up/AABBCCDDEEFF", "payload": "eyJndyI6ICJBQUJCQ0NEREVFRkYifQ==", "received": 1795000000.0}, "expect": {"protocol": [{"adapter": "chgme-aabbccfffeddeeff", "key": "gw:aabbccfffeddeeff", "kind": "state", "body": {"v": 1, "online": true, "last_heard": 1795000000.0}}]}}
