@@ -20,6 +20,8 @@ permissions:
   contents: read
 jobs:
   pypi:
+    # After the crate: the templates pulzr-pkg new writes depend on it.
+    needs: crate
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: pypi
