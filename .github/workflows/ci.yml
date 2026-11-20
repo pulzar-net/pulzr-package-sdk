@@ -37,6 +37,6 @@ jobs:
           for kind in gateway carrier; do
             dir="$RUNNER_TEMP/t-$kind"
             (cd "$RUNNER_TEMP" && pulzr-pkg new "$kind" "t-$kind")
-            printf '\n[patch."https://github.com/pulzar-net/pulzr-package-sdk"]\npulzr-package = { path = "%s/guest" }\n' "$root" >> "$dir/Cargo.toml"
+            sed -i "s|^pulzr-package = .*|pulzr-package = { path = \"$root/guest\" }|" "$dir/Cargo.toml"
             (cd "$dir" && pulzr-pkg build && pulzr-pkg validate && pulzr-pkg test -v)
           done
