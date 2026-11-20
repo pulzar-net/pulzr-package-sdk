@@ -3,7 +3,7 @@
 // sidebar below orders them. Built and published by .github/workflows/docs.yml.
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
-import { pulzarPlugins } from '@pulzar-net/docs-theme';
+import { pulzarPlugins } from '@pulzr/docs-theme';
 
 export default defineConfig({
 	site: 'https://pulzar-net.github.io',
