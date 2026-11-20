@@ -10,9 +10,9 @@ sandboxed WebAssembly, never as a service of your own.
 
 | | |
 |---|---|
-| [`docs/abi.md`](docs/abi.md) | the ABI, for any language that compiles to WebAssembly |
-| [`docs/gateway-package.md`](docs/gateway-package.md) | build a gateway package |
-| [`docs/carrier-driver.md`](docs/carrier-driver.md) | build a carrier driver |
+| [The ABI](https://pulzar-net.github.io/pulzr-package-sdk/abi.html) | the ABI, for any language that compiles to WebAssembly |
+| [Build a gateway package](https://pulzar-net.github.io/pulzr-package-sdk/gateway-package.html) | a guide, with a worked example |
+| [Build a carrier driver](https://pulzar-net.github.io/pulzr-package-sdk/carrier-driver.html) | a guide |
 | [`guest/`](guest) | `pulzr-package`, the Rust crate a module is written with |
 | [`python/`](python) | `pulzr_host`, the host the platform runs modules in, and `pulzr-pkg`, the CLI |
 | [`examples/beacon-gateway`](examples/beacon-gateway) | a worked gateway package |
@@ -20,6 +20,7 @@ sandboxed WebAssembly, never as a service of your own.
 
 ## A module in Rust
 
+<!-- ANCHOR: module -->
 ```rust
 use pulzr_package::{export, Answer, Event, Package};
 
@@ -38,9 +39,11 @@ impl Package for Adapter {
 
 export!(Adapter);
 ```
+<!-- ANCHOR_END: module -->
 
 ## pulzr-pkg
 
+<!-- ANCHOR: pkg -->
 ```bash
 pip install "git+https://github.com/pulzar-net/pulzr-package-sdk@v0.1.0#subdirectory=python"
 rustup target add wasm32-unknown-unknown
@@ -51,6 +54,7 @@ pulzr-pkg build      # cargo build for wasm32; the module into dist/, its sha256
 pulzr-pkg validate   # the manifest, the module's digest, imports, exports and limits
 pulzr-pkg test       # tests/*.jsonl through the platform's own host
 ```
+<!-- ANCHOR_END: pkg -->
 
 `pulzr-pkg test` runs your module in `pulzr_host`, the same host the
 platform runs it in, and checks every answer as the platform would (the

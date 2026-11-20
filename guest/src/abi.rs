@@ -1,4 +1,4 @@
-//! The ABI's plumbing (docs/abi.md), which [`crate::export!`] wires up: the
+//! The ABI's plumbing (docs/src/content/docs/abi.md), which [`crate::export!`] wires up: the
 //! host writes an event into room `pz_alloc` made, `pz_handle` reads it,
 //! frees it, and returns the answer's place in memory, kept until the next
 //! call. Other languages implement the same three exports.

@@ -1,4 +1,4 @@
-//! The host functions (docs/abi.md, module `pz`). Each is imported only when
+//! The host functions (docs/src/content/docs/abi.md, module `pz`). Each is imported only when
 //! called, and must be declared in the manifest's `imports` (`log`, `now`,
 //! `state`, `http`), or the platform refuses the module at install. Off
 //! wasm32 (in a crate's own tests) they do nothing useful: test translation
@@ -119,7 +119,7 @@ pub fn state_set(key: &str, value: &[u8], ttl_s: u32) -> Result<(), StateFull> {
     }
 }
 
-/// An outbound HTTPS request (docs/abi.md, `http`). A credential the manifest
+/// An outbound HTTPS request (docs/src/content/docs/abi.md, `http`). A credential the manifest
 /// declares goes in a header or the body as `{{credential.<name>}}` (or
 /// `{{basic:<user field>:<password field>}}` for HTTP Basic), and the host
 /// fills it in: the module never holds the secret, and never sees it echoed.

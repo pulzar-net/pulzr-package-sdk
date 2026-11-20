@@ -1,4 +1,7 @@
-# Build a gateway package
+---
+title: "Build a gateway package"
+description: "A gateway support package brings another company's gateway onto the Pulzr platform: its owner adopts it like any gateway, its devices' readings arrive like any device's, and the console manages it thr"
+---
 
 A gateway support package brings another company's gateway onto the Pulzr
 platform: its owner adopts it like any gateway, its devices' readings arrive
@@ -7,7 +10,7 @@ package declares. The package is a repository you own; the platform installs
 a release of it into an organization, and runs its adapter, a WebAssembly
 module, in its sandbox. Adding a gateway type needs no platform release.
 
-The worked example is [`examples/beacon-gateway`](../examples/beacon-gateway),
+The worked example is [`examples/beacon-gateway`](https://github.com/pulzar-net/pulzr-package-sdk/tree/main/examples/beacon-gateway),
 a made-up beacon gateway that speaks JSON over MQTT.
 
 ## Start
@@ -41,13 +44,13 @@ you set first:
   (`publish`). These are the vendor messages your module gets and gives.
 - `adapter.prefix`: the name the adapter speaks as, `<prefix>-<gateway EUI>`,
   unique across packages.
-- `adapter.limits`: fuel and memory per call ([abi.md](abi.md)).
+- `adapter.limits`: fuel and memory per call ([abi.md](/pulzr-package-sdk/abi.html)).
 - `adapter.imports`: `log`, `now`, `state`; never `http` (a gateway's traffic is
   answered in line with every other gateway's).
 
 ## Events and answers
 
-Your module gets one event per call ([`Event`](../guest/src/lib.rs)):
+Your module gets one event per call ([`Event`](https://github.com/pulzar-net/pulzr-package-sdk/blob/main/guest/src/lib.rs)):
 
 - `message`: a vendor message on one of `broker.adapter`'s subscriptions, with
   its topic, payload and the time it was received.
@@ -56,7 +59,7 @@ Your module gets one event per call ([`Event`](../guest/src/lib.rs)):
   call), its `expires` and the time now.
 - `tick`: about every ten seconds.
 
-and answers with ([`Answer`](../guest/src/lib.rs)):
+and answers with ([`Answer`](https://github.com/pulzar-net/pulzr-package-sdk/blob/main/guest/src/lib.rs)):
 
 - `protocol`: protocol v1 messages: `up` for a device's reading or frame,
   `state` and `settings` for the gateway itself (`gw:<EUI>`), `event`, and

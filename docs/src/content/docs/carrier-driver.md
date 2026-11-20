@@ -1,10 +1,13 @@
-# Build a carrier driver
+---
+title: "Build a carrier driver"
+description: "A carrier driver connects the platform to a cellular carrier's API: the platform calls it for what it needs from the carrier (the calls are the carrier-driver kind's, below), and the driver answers wi"
+---
 
 A carrier driver connects the platform to a cellular carrier's API: the
 platform calls it for what it needs from the carrier (the calls are the
 carrier-driver kind's, below), and the driver answers with the carrier's own
 API, over `pz.http`. It is an extension module like a gateway package's
-adapter ([abi.md](abi.md)), and is built, tested and released the same way.
+adapter ([abi.md](/pulzr-package-sdk/abi.html)), and is built, tested and released the same way.
 
 ```bash
 pulzr-pkg new carrier acme-carrier
@@ -44,8 +47,8 @@ needs from the platform:
 
 The carrier-driver kind's events (its calls) and its answers are defined by
 the platform's connectivity service, which runs drivers; they arrive in your
-module as [`Event::Other`](../guest/src/lib.rs) and go back in an
-[`Answer`](../guest/src/lib.rs)'s `extra` members. Each call is one
+module as [`Event::Other`](https://github.com/pulzar-net/pulzr-package-sdk/blob/main/guest/src/lib.rs) and go back in an
+[`Answer`](https://github.com/pulzar-net/pulzr-package-sdk/blob/main/guest/src/lib.rs)'s `extra` members. Each call is one
 organization's: a driver instance never sees another organization's calls,
 state or credentials.
 

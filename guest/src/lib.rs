@@ -3,7 +3,7 @@
 //! An extension module is code a third party adds to the Pulzr platform, run
 //! in the platform's WebAssembly sandbox: a gateway support package's adapter
 //! (another vendor's gateway, translated into protocol v1) or a carrier driver.
-//! This crate hides the ABI ([`abi`], `docs/abi.md`): implement [`Package`],
+//! This crate hides the ABI ([`abi`], `docs/src/content/docs/abi.md`): implement [`Package`],
 //! name your type in [`export!`], and build for `wasm32-unknown-unknown`.
 //!
 //! ```no_run

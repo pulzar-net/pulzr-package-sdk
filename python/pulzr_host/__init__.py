@@ -1,4 +1,4 @@
-"""The host side of the extension ABI (docs/abi.md): load a module, run one
+"""The host side of the extension ABI (docs/src/content/docs/abi.md): load a module, run one
 instance of it per install, lend it the host functions its manifest declares,
 and meter what it costs. Every service that runs extension modules uses this,
 so a module that passes `pulzr-pkg test` runs the same way in the platform.
@@ -31,7 +31,7 @@ log = logging.getLogger('pulzr_host')
 
 ABI_VERSIONS = (1, 2)
 # A service's own cap may be lower (adapter-ingest's is 100 million, about
-# 65 ms of an Apple M1 core spent to the last unit; docs/abi.md, "Cost").
+# 65 ms of an Apple M1 core spent to the last unit; docs/src/content/docs/abi.md, "Cost").
 MAX_FUEL = 2_000_000_000
 MAX_MEMORY_MIB = 256
 DEFAULT_FUEL = 50_000_000

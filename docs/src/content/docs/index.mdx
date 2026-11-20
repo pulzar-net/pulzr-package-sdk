@@ -1,0 +1,44 @@
+---
+title: pulzr-package-sdk
+description: Build extension modules for the Pulzr platform, gateway support packages and carrier drivers, as sandboxed WebAssembly.
+template: splash
+---
+
+import { Hero, Features, Snippet } from '@pulzar-net/docs-theme/components';
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+import readme from '../../../../README.md?raw';
+
+<Hero
+	eyebrow="Pulzar open source"
+	title="pulzr-package-sdk"
+	tagline="Build extension modules for the Pulzr platform: code you add to it, run as sandboxed WebAssembly, never as a service of your own."
+	actions={[
+		{ text: 'Build a gateway package', link: '/pulzr-package-sdk/gateway-package.html', icon: 'right-arrow' },
+		{ text: 'The ABI', link: '/pulzr-package-sdk/abi.html', variant: 'minimal' },
+		{ text: 'GitHub', link: 'https://github.com/pulzar-net/pulzr-package-sdk', variant: 'minimal', icon: 'github' },
+	]}
+/>
+
+<Features
+	items={[
+		{ title: 'Gateway support packages', body: 'Bring another company\'s gateway onto the platform: adopted, its devices\' readings arriving like any device\'s.', icon: 'seti:hex', link: '/pulzr-package-sdk/gateway-package.html' },
+		{ title: 'Carrier drivers', body: 'Connect the platform to a cellular carrier\'s API, within the hosts you declare.', icon: 'random', link: '/pulzr-package-sdk/carrier-driver.html' },
+		{ title: 'Any language', body: 'A small ABI for anything that compiles to WebAssembly, and a Rust crate that hides it.', icon: 'seti:wasm', link: '/pulzr-package-sdk/abi.html' },
+		{ title: 'Tested in the real host', body: 'pulzr-pkg test runs your module in the same host the platform runs it in.', icon: 'laptop', link: '/pulzr-package-sdk/gateway-package.html#test' },
+	]}
+/>
+
+## A module in Rust
+
+<Snippet code={readme} anchor="module" lang="rust" />
+
+## Build, check and test it
+
+<Snippet code={readme} anchor="pkg" lang="bash" />
+
+<CardGrid>
+	<LinkCard title="Build a gateway package" description="The manifest, events and answers, tests and releases, with a worked example." href="/pulzr-package-sdk/gateway-package.html" />
+	<LinkCard title="Build a carrier driver" description="What a driver may reach, its calls, and testing." href="/pulzr-package-sdk/carrier-driver.html" />
+	<LinkCard title="The extension ABI" description="Exports, host functions, metering, failure and tenancy." href="/pulzr-package-sdk/abi.html" />
+	<LinkCard title="The GitHub Action" description="Build, check, test and release a module from CI." href="https://github.com/pulzar-net/pulzr-package-sdk/blob/main/action.yml" />
+</CardGrid>

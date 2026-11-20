@@ -1,4 +1,7 @@
-# The extension ABI, version 2
+---
+title: "The extension ABI, version 2"
+description: "The contract between the Pulzr platform and an extension module, for any language that compiles to WebAssembly."
+---
 
 The contract between the Pulzr platform and an extension module, for any
 language that compiles to WebAssembly. `pulzr-package` (Rust, `guest/`)
@@ -8,16 +11,16 @@ the platform's protocol repository, where its source of truth lives.
 
 Code a third party adds to the platform runs as a WebAssembly module in the
 platform's sandbox, never as a service of its own: a gateway support
-package's adapter ([gateway-package.md](gateway-package.md)), a carrier driver, and whatever kind comes
+package's adapter ([gateway-package.md](/pulzr-package-sdk/gateway-package.html)), a carrier driver, and whatever kind comes
 next. This is the contract every kind shares: how a module is described in
 its manifest, what it exports, what the host lends it, and what happens when
-it fails. Each kind adds only its events and its answer ([gateway-package.md](gateway-package.md) for gateway packages).
+it fails. Each kind adds only its events and its answer ([gateway-package.md](/pulzr-package-sdk/gateway-package.html) for gateway packages).
 
 A module is a WebAssembly core module (`wasm32`), written in any language
 that compiles to one; `pulzr-package` (Rust) hides the plumbing below, and
 nothing here depends on it.
 
-Each kind's events and answers: [gateway packages](gateway-package.md#events-and-answers), [carrier drivers](carrier-driver.md).
+Each kind's events and answers: [gateway packages](/pulzr-package-sdk/gateway-package.html#events-and-answers), [carrier drivers](/pulzr-package-sdk/carrier-driver.html).
 
 ## In the manifest
 
