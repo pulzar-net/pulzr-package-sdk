@@ -65,10 +65,14 @@ def cmd_new(args):
         raise Failed(f'{target} already exists')
     crate = target.name.replace('_', '-')
     shutil.copytree(source, target)
-    for f in target.rglob('*'):
+    for f in list(target.rglob('*')):
         if f.is_file():
             text = f.read_text()
             f.write_text(text.replace('{{name}}', crate).replace('{{crate}}', crate.replace('-', '_')))
+            # Kept as .tmpl in the SDK, so cargo never reads a template's
+            # `{{name}}` as a package name.
+            if f.suffix == '.tmpl':
+                f.rename(f.with_suffix(''))
     print(f'{target}: a {args.kind} {"package" if args.kind == "gateway" else "driver"}. '
           f'Next: cd {target} && pulzr-pkg build && pulzr-pkg test')
 
