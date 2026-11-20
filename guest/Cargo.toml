@@ -6,6 +6,10 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
+homepage = "https://pulzar-net.github.io/pulzr-package-sdk/"
+documentation = "https://docs.rs/pulzr-package"
+readme = "README.md"
+include = ["src/**", "README.md", "LICENSE"]
 keywords = ["pulzr", "iot", "gateway", "wasm", "plugin"]
 categories = ["wasm", "api-bindings"]
 

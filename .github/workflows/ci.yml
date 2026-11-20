@@ -26,6 +26,8 @@ jobs:
           cargo fmt --all --check
           cargo clippy --workspace --all-targets -- -D warnings
           cargo test --workspace
+      - name: The crate packages and builds as published
+        run: cargo package -p pulzr-package
       - name: The worked example, through the action's own steps
         uses: ./
         with:
