@@ -95,6 +95,8 @@ def test_state_per_install_its_quota_and_ttl(host):
     assert store.get('org-a', b't') is None and store.get('org-a', b'k') == b'v', 'the ttl'
     # It survives the instance: a restart keeps state.
     assert m.instance('org-a', state=store).call({'event': 'tick'}) == {}
+    usage = {i: c for i, _m, _d, c in host.usage.drain()}
+    assert usage['org-a']['state_bytes'] == 2 and usage['org-b']['state_bytes'] == 4
 
 
 class FakeSession:

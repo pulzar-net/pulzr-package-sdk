@@ -309,7 +309,7 @@ class Instance:
                 return None
             finally:
                 meter['cpu_ms'] = int((time.perf_counter() - started) * 1000)
-                if 'state' in self.module.imported:
+                if self.module.imported & {'state_get', 'state_set'}:
                     meter['state_bytes'] = self._state.size(self.install)
                 self.module.host.usage.add(self.install, self.module.name, meter)
                 self._call = None
