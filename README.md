@@ -1,5 +1,10 @@
 # pulzr-package-sdk
 
+[![crates.io](https://img.shields.io/crates/v/pulzr-package.svg)](https://crates.io/crates/pulzr-package)
+[![docs.rs](https://img.shields.io/docsrs/pulzr-package)](https://docs.rs/pulzr-package)
+[![PyPI](https://img.shields.io/pypi/v/pulzr-pkg.svg)](https://pypi.org/project/pulzr-pkg/)
+[![Docs](https://img.shields.io/badge/docs-pulzar--net.github.io-blue)](https://pulzar-net.github.io/pulzr-package-sdk/)
+
 Build extension modules for the Pulzr platform: code you add to it, run as
 sandboxed WebAssembly, never as a service of your own.
 
@@ -13,8 +18,8 @@ sandboxed WebAssembly, never as a service of your own.
 | [The ABI](https://pulzar-net.github.io/pulzr-package-sdk/abi.html) | the ABI, for any language that compiles to WebAssembly |
 | [Build a gateway package](https://pulzar-net.github.io/pulzr-package-sdk/gateway-package.html) | a guide, with a worked example |
 | [Build a carrier driver](https://pulzar-net.github.io/pulzr-package-sdk/carrier-driver.html) | a guide |
-| [`guest/`](guest) | `pulzr-package`, the Rust crate a module is written with |
-| [`python/`](python) | `pulzr_host`, the host the platform runs modules in, and `pulzr-pkg`, the CLI |
+| [`guest/`](guest) | [`pulzr-package`](https://crates.io/crates/pulzr-package), the Rust crate a module is written with ([API](https://docs.rs/pulzr-package)) |
+| [`python/`](python) | [`pulzr-pkg`](https://pypi.org/project/pulzr-pkg/), the CLI, and `pulzr_host`, the host the platform runs modules in |
 | [`examples/beacon-gateway`](examples/beacon-gateway) | a worked gateway package |
 | [`action.yml`](action.yml) | the GitHub Action that builds, checks, tests and releases a module |
 
@@ -63,7 +68,7 @@ protocol's schema, your manifest's topics), so what passes here passes there.
 ## Releasing
 
 ```yaml
-- uses: pulzar-net/pulzr-package-sdk@v0.1.0
+- uses: pulzar-net/pulzr-package-sdk@v0.2.0
   with:
     release: ${{ startsWith(github.ref, 'refs/tags/v') }}
 ```
