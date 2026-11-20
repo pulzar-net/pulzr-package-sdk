@@ -16,7 +16,7 @@ a made-up beacon gateway that speaks JSON over MQTT.
 ## Start
 
 ```bash
-pip install "git+https://github.com/pulzar-net/pulzr-package-sdk@v0.1.0#subdirectory=python"
+pipx install pulzr-pkg
 rustup target add wasm32-unknown-unknown
 pulzr-pkg new gateway acme-gateway
 cd acme-gateway

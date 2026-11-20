@@ -1,5 +1,10 @@
-# The pulzr-package crate to crates.io, on a tag. The Action and the Python
-# host and CLI are used by tag and need nothing published.
+# On a tag: pulzr-pkg (the CLI and pulzr_host) to PyPI, and the
+# pulzr-package crate to crates.io. The Action is used by tag and needs
+# nothing published.
+#
+# pulzr-pkg's version is the SDK's: python/pyproject.toml must equal the tag.
+# It is published by PyPI's trusted publishing, with no token: PyPI trusts
+# this workflow, in the pypi environment, as the project's publisher.
 #
 # The crate's version is guest/Cargo.toml's, bumped when the crate changes; a
 # tag whose version crates.io already has publishes nothing, so a tag for the
@@ -14,6 +19,31 @@ on:
 permissions:
   contents: read
 jobs:
+  pypi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: The tag is pulzr-pkg's version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          want="$(sed -n 's/^version = "\(.*\)"/\1/p' python/pyproject.toml | head -n1)"
+          [ "${TAG#v}" = "${want}" ] || { echo "tag ${TAG} is not v${want} (python/pyproject.toml)" >&2; exit 1; }
+      - name: Build
+        run: python -m pip install --quiet build && python -m build python --outdir dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+          skip-existing: true
+
   crate:
     runs-on: ubuntu-latest
     timeout-minutes: 20

@@ -45,7 +45,7 @@ export!(Adapter);
 
 <!-- ANCHOR: pkg -->
 ```bash
-pip install "git+https://github.com/pulzar-net/pulzr-package-sdk@v0.1.0#subdirectory=python"
+pipx install pulzr-pkg
 rustup target add wasm32-unknown-unknown
 
 pulzr-pkg new gateway acme-gateway   # or: new carrier acme-carrier
