@@ -75,7 +75,9 @@ protocol's schema, your manifest's topics), so what passes here passes there.
 
 On a tag `v<the manifest's version>`, the release carries exactly what the
 platform installs from: the manifest, its schemas and commands, and the
-module.
+module. Its notes are the annotated tag's message
+(`git tag -a vX.Y.Z --cleanup=whitespace -F notes.md`), or GitHub's generated
+notes; a release with neither fails.
 
 ## The host
 

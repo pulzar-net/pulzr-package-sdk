@@ -1,6 +1,6 @@
-# On a tag: pulzr-pkg (the CLI and pulzr_host) to PyPI, and the
-# pulzr-package crate to crates.io. The Action is used by tag and needs
-# nothing published.
+# On a tag: pulzr-pkg (the CLI and pulzr_host) to PyPI, the pulzr-package
+# crate to crates.io, then the GitHub release, with the annotated tag's
+# message as its notes. The Action is used by tag and needs nothing published.
 #
 # pulzr-pkg's version is the SDK's: python/pyproject.toml must equal the tag.
 # It is published by PyPI's trusted publishing, with no token: PyPI trusts
@@ -68,3 +68,38 @@ jobs:
             "https://crates.io/api/v1/crates/pulzr-package/${version}")"
           if [ "${code}" = 200 ]; then echo "pulzr-package ${version} is already on crates.io"; exit 0; fi
           cargo publish -p pulzr-package --locked
+
+  github:
+    needs: pypi
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Release notes from the tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          # The annotated tag's message (git tag -a vX.Y.Z --cleanup=whitespace
+          # -F notes.md), else GitHub's generated notes; never none.
+          set -euo pipefail
+          notes="${RUNNER_TEMP}/notes.md"
+          git fetch -q --force origin "refs/tags/${TAG}:refs/tags/${TAG}"
+          : > "${notes}"
+          if [ "$(git cat-file -t "refs/tags/${TAG}")" = tag ]; then
+            git cat-file tag "refs/tags/${TAG}" | sed '1,/^$/d; /^-----BEGIN [A-Z ]*SIGNATURE-----$/,$d' > "${notes}"
+          fi
+          if ! awk -v t="${TAG}" 'NF && $0 != t { f = 1 } END { exit !f }' "${notes}"; then
+            gh api "repos/${GITHUB_REPOSITORY}/releases/generate-notes" -f tag_name="${TAG}" -q .body > "${notes}"
+            awk 'NF && !/Full Changelog/ { f = 1 } END { exit !f }' "${notes}" || {
+              echo "::error::${TAG} has no release notes: tag it with git tag -a and the notes as its message"; exit 1; }
+          fi
+      - name: GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "${TAG}" >/dev/null 2>&1; then echo "${TAG} is already released"; exit 0; fi
+          gh release create "${TAG}" --verify-tag --title "${TAG}" --notes-file "${RUNNER_TEMP}/notes.md"

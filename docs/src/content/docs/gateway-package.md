@@ -99,7 +99,8 @@ Every answer is also checked as the platform would check it.
 
 ## Release
 
-Tag the manifest's version (`v1.0.0`) and push: the workflow builds the module,
+Tag the manifest's version with the release notes as the tag's message
+(`git tag -a v1.0.0 --cleanup=whitespace -F notes.md`) and push: the workflow builds the module,
 writes its `sha256` into the manifest, checks and tests it, and releases the
 manifest, `commands.json`, the schemas and the module. Pulzar staff add the
 release to the platform's catalog by its tag, through the Pulzar GitHub App
