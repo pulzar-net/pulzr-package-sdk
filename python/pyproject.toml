@@ -12,7 +12,7 @@ readme = "README.md"
 dependencies = ["wasmtime>=50,<51", "requests>=2.31", "jsonschema>=4.20"]
 
 [project.urls]
-Homepage = "https://pulzar-net.github.io/pulzr-package-sdk/"
+Homepage = "https://oss.pulzr.net/pulzr-package-sdk/"
 Source = "https://github.com/pulzar-net/pulzr-package-sdk"
 
 [project.scripts]

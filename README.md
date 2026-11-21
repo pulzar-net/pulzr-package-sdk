@@ -3,7 +3,7 @@
 [![crates.io](https://img.shields.io/crates/v/pulzr-package.svg)](https://crates.io/crates/pulzr-package)
 [![docs.rs](https://img.shields.io/docsrs/pulzr-package)](https://docs.rs/pulzr-package)
 [![PyPI](https://img.shields.io/pypi/v/pulzr-pkg.svg)](https://pypi.org/project/pulzr-pkg/)
-[![Docs](https://img.shields.io/badge/docs-pulzar--net.github.io-blue)](https://pulzar-net.github.io/pulzr-package-sdk/)
+[![Docs](https://img.shields.io/badge/docs-oss.pulzr.net-blue)](https://oss.pulzr.net/pulzr-package-sdk/)
 
 Build extension modules for the Pulzr platform: code you add to it, run as
 sandboxed WebAssembly, never as a service of your own.
@@ -15,9 +15,9 @@ sandboxed WebAssembly, never as a service of your own.
 
 | | |
 |---|---|
-| [The ABI](https://pulzar-net.github.io/pulzr-package-sdk/abi.html) | the ABI, for any language that compiles to WebAssembly |
-| [Build a gateway package](https://pulzar-net.github.io/pulzr-package-sdk/gateway-package.html) | a guide, with a worked example |
-| [Build a carrier driver](https://pulzar-net.github.io/pulzr-package-sdk/carrier-driver.html) | a guide |
+| [The ABI](https://oss.pulzr.net/pulzr-package-sdk/abi.html) | the ABI, for any language that compiles to WebAssembly |
+| [Build a gateway package](https://oss.pulzr.net/pulzr-package-sdk/gateway-package.html) | a guide, with a worked example |
+| [Build a carrier driver](https://oss.pulzr.net/pulzr-package-sdk/carrier-driver.html) | a guide |
 | [`guest/`](guest) | [`pulzr-package`](https://crates.io/crates/pulzr-package), the Rust crate a module is written with ([API](https://docs.rs/pulzr-package)) |
 | [`python/`](python) | [`pulzr-pkg`](https://pypi.org/project/pulzr-pkg/), the CLI, and `pulzr_host`, the host the platform runs modules in |
 | [`examples/beacon-gateway`](examples/beacon-gateway) | a worked gateway package |

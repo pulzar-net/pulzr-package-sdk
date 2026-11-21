@@ -14,8 +14,8 @@ cargo add pulzr-package
 
 `pulzr-pkg new gateway my-gateway` starts a package with it, and
 `pulzr-pkg build && pulzr-pkg test` builds it and runs its tests through the
-platform's own host. See the [guides](https://pulzar-net.github.io/pulzr-package-sdk/)
-and the [ABI](https://pulzar-net.github.io/pulzr-package-sdk/abi.html).
+platform's own host. See the [guides](https://oss.pulzr.net/pulzr-package-sdk/)
+and the [ABI](https://oss.pulzr.net/pulzr-package-sdk/abi.html).
 
 Part of [pulzr-package-sdk](https://github.com/pulzar-net/pulzr-package-sdk),
 maintained by [Pulzar](https://pulzr.net). License: MIT.
