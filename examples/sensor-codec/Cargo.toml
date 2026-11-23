@@ -1,0 +1,13 @@
+[package]
+name = "example-sensor-codec"
+version = "1.0.0"
+description = "A native codec for a made-up temperature sensor: the worked example of pulzr-codec-sdk"
+edition = "2024"
+license.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pulzr-codec-sdk = { path = "../../codec" }

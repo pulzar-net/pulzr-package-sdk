@@ -12,15 +12,19 @@ sandboxed WebAssembly, never as a service of your own.
   platform: adopted, its devices' readings arriving like any device's,
   managed through the capabilities you declare.
 - **Carrier drivers** connect the platform to a cellular carrier's API.
+- **Codecs** turn a device's bytes into readings, in JavaScript or natively in Rust.
 
 | | |
 |---|---|
 | [The ABI](https://oss.pulzr.net/pulzr-package-sdk/abi.html) | the ABI, for any language that compiles to WebAssembly |
 | [Build a gateway package](https://oss.pulzr.net/pulzr-package-sdk/gateway-package.html) | a guide, with a worked example |
 | [Build a carrier driver](https://oss.pulzr.net/pulzr-package-sdk/carrier-driver.html) | a guide |
+| [Write a codec](https://oss.pulzr.net/pulzr-package-sdk/codec.html) | a guide, and the codec API |
 | [`guest/`](guest) | [`pulzr-package`](https://crates.io/crates/pulzr-package), the Rust crate a module is written with ([API](https://docs.rs/pulzr-package)) |
 | [`python/`](python) | [`pulzr-pkg`](https://pypi.org/project/pulzr-pkg/), the CLI, and `pulzr_host`, the host the platform runs modules in |
+| [`codec/`](codec) | `pulzr-codec-sdk`, the Rust crate a native codec is written with |
 | [`examples/beacon-gateway`](examples/beacon-gateway) | a worked gateway package |
+| [`examples/sensor-codec`](examples/sensor-codec) | a worked native codec |
 | [`action.yml`](action.yml) | the GitHub Action that builds, checks, tests and releases a module |
 
 ## A module in Rust

@@ -1,0 +1,13 @@
+[package]
+name = "pulzr-codec-sdk"
+version = "0.1.0"
+description = "Write a native Pulzr codec in Rust: bytes in, readings out"
+edition = "2024"
+license.workspace = true
+repository.workspace = true
+rust-version = "1.85"
+homepage = "https://oss.pulzr.net/pulzr-package-sdk/codec.html"
+documentation = "https://docs.rs/pulzr-codec-sdk"
+include = ["src/**", "LICENSE"]
+keywords = ["pulzr", "iot", "lorawan", "codec", "wasm"]
+categories = ["wasm", "api-bindings"]

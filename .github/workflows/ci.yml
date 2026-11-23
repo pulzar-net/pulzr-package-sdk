@@ -26,8 +26,10 @@ jobs:
           cargo fmt --all --check
           cargo clippy --workspace --all-targets -- -D warnings
           cargo test --workspace
-      - name: The crate packages and builds as published
-        run: cargo package -p pulzr-package
+      - name: The crates package and build as published
+        run: cargo package -p pulzr-package -p pulzr-codec-sdk
+      - name: The worked codec builds for the platform
+        run: cargo build -p example-sensor-codec --release --target wasm32-unknown-unknown
       - name: The worked example, through the action's own steps
         uses: ./
         with:

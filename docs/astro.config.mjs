@@ -16,7 +16,7 @@ export default defineConfig({
 			description: 'Build extension modules for the Pulzr platform: gateway support packages and carrier drivers as sandboxed WebAssembly.',
 			plugins: pulzarPlugins({ project: 'pulzr-package-sdk' }),
 			sidebar: [
-				{ label: 'Guides', items: ['gateway-package', 'carrier-driver'] },
+				{ label: 'Guides', items: ['gateway-package', 'carrier-driver', 'codec'] },
 				{ label: 'Reference', items: ['abi'] },
 			],
 		}),

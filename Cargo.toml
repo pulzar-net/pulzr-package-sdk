@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["guest", "examples/beacon-gateway"]
+members = ["guest", "codec", "examples/beacon-gateway", "examples/sensor-codec"]
 
 [workspace.package]
 edition = "2021"
