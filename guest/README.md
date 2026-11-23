@@ -18,4 +18,4 @@ platform's own host. See the [guides](https://oss.pulzr.net/pulzr-package-sdk/)
 and the [ABI](https://oss.pulzr.net/pulzr-package-sdk/abi.html).
 
 Part of [pulzr-package-sdk](https://github.com/pulzar-net/pulzr-package-sdk),
-maintained by [Pulzar](https://pulzr.net). License: MIT.
+maintained by [Pulzr](https://pulzr.net). License: MIT.

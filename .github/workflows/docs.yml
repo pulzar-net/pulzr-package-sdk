@@ -1,4 +1,4 @@
-# The docs site: docs/, Starlight with the Pulzar theme, published to GitHub
+# The docs site: docs/, Starlight with the Pulzr theme, published to GitHub
 # Pages from main. The build fails on a broken internal link. Add the checks
 # that test the docs against the code (a quick start run as written, a
 # reference generated from the code) as jobs here, and list them in deploy's

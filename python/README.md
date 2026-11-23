@@ -16,4 +16,4 @@ crate, or in any language that compiles to WebAssembly against the
 [ABI](https://oss.pulzr.net/pulzr-package-sdk/abi.html). Guides:
 https://oss.pulzr.net/pulzr-package-sdk/. Part of
 [pulzr-package-sdk](https://github.com/pulzar-net/pulzr-package-sdk), maintained by
-[Pulzar](https://pulzr.net). License: MIT.
+[Pulzr](https://pulzr.net). License: MIT.

@@ -1,4 +1,4 @@
-// The pulzr-package-sdk docs: Starlight with the shared Pulzar theme
+// The pulzr-package-sdk docs: Starlight with the shared Pulzr theme
 // (github.com/pulzar-net/docs-theme). Pages are in src/content/docs; the
 // sidebar below orders them. Built and published by .github/workflows/docs.yml.
 import { defineConfig } from 'astro/config';
