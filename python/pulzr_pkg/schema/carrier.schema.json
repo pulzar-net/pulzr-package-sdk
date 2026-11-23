@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/pulzar-net/pulzr-package-sdk/schema/carrier.schema.json",
+  "title": "Carrier driver manifest (driver.json)",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "version",
+    "kind",
+    "logo",
+    "capabilities",
+    "driver"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,40}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 60
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "kind": {
+      "enum": [
+        "cellular",
+        "network"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 400
+    },
+    "homepage": {
+      "type": "string",
+      "pattern": "^https://"
+    },
+    "logo": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*\\.(svg|png)$"
+    },
+    "logoDark": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*\\.(svg|png)$"
+    },
+    "capabilities": {
+      "$ref": "connectivity.schema.json#/$defs/Capabilities"
+    },
+    "config": {
+      "type": "object",
+      "description": "A JSON Schema object: the provider's settings, not secret, handed to every event."
+    },
+    "driver": {
+      "description": "The extension module object (ABI 2); a carrier is reached over HTTPS with the organization's own credentials, so http.hosts and credentials are required.",
+      "allOf": [
+        {
+          "$ref": "https://github.com/pulzar-net/pulzr-protocol/schema/extension.schema.json#/$defs/module"
+        },
+        {
+          "required": [
+            "http",
+            "credentials",
+            "imports"
+          ],
+          "properties": {
+            "imports": {
+              "contains": {
+                "const": "http"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

@@ -68,7 +68,7 @@ protocol's schema, your manifest's topics), so what passes here passes there.
 ## Releasing
 
 ```yaml
-- uses: pulzar-net/pulzr-package-sdk@v0.2.0
+- uses: pulzar-net/pulzr-package-sdk@v0.3.0
   with:
     release: ${{ startsWith(github.ref, 'refs/tags/v') }}
 ```

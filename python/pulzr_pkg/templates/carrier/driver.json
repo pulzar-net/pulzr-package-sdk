@@ -2,11 +2,15 @@
   "id": "{{name}}",
   "version": "0.1.0",
   "name": "{{name}}",
+  "kind": "cellular",
+  "description": "What this carrier is, in a sentence, for the catalog.",
+  "logo": "logo.svg",
+  "capabilities": ["sim.inventory", "sim.status"],
   "driver": {
     "runtime": "wasm", "module": "driver.wasm",
     "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
     "limits": {"fuel": 10000000, "memoryMiB": 16},
-    "imports": ["http"],
+    "imports": ["http", "state"],
     "http": {"hosts": ["api.example.com"]},
     "credentials": {"type": "object", "required": ["api_key"],
                     "properties": {"api_key": {"type": "string", "title": "API key", "writeOnly": true}}}

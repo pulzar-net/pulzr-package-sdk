@@ -38,6 +38,17 @@ def _load(name):
     return json.loads((SCHEMA / name).read_text())
 
 
+def _registry():
+    """Every schema here by its $id, so one may refer to another."""
+    from referencing import Registry, Resource
+    resources = [Resource.from_contents(json.loads(f.read_text())) for f in sorted(SCHEMA.glob('*.json'))]
+    return Registry().with_resources((r.id(), r) for r in resources)
+
+
+def _logos(manifest):
+    return [manifest[k] for k in ('logo', 'logoDark') if manifest.get(k)]
+
+
 def manifest_path(args):
     if args.manifest:
         return pathlib.Path(args.manifest)
@@ -115,15 +126,21 @@ def validate(path):
     if kind == 'gateway':
         schema = _load('gateway.schema.json')
         v = jsonschema.Draft202012Validator({**schema, '$ref': '#/$defs/manifest'})
+    elif kind == 'carrier':
+        v = jsonschema.Draft202012Validator(_load('carrier.schema.json'), registry=_registry())
     else:
         schema = _load('extension.schema.json')
         v = jsonschema.Draft202012Validator({**schema, '$ref': '#/$defs/module'})
-    target = manifest if kind == 'gateway' else manifest[key]
+    target = manifest if kind in ('gateway', 'carrier') else manifest[key]
     problems += [f'{path}: {"/".join(map(str, e.absolute_path)) or "(top)"}: {e.message}'
                  for e in v.iter_errors(target)]
     module = manifest[key]
     if kind == 'gateway' and 'http' in (module.get('imports') or ()):
         problems.append(f'{path}: a gateway package may not import http (EXTENSIONS.md)')
+    if kind == 'carrier':
+        for f in _logos(manifest):
+            if not pathlib.Path(f).is_file():
+                problems.append(f'{path}: names the logo {f}, which is not here')
     if kind == 'gateway':
         for f in ('settings', 'state', 'commands'):
             name = (manifest.get('management') or {}).get(f)
@@ -190,6 +207,23 @@ def check_gateway_answer(manifest, answer):
     return out
 
 
+def check_carrier_answer(answer):
+    """What the connectivity service would refuse in a carrier driver's answer."""
+    out = []
+    if ('ok' in answer) == ('error' in answer):
+        out.append('a carrier answer has exactly one of ok and error')
+    error = answer.get('error')
+    if error is not None:
+        if not isinstance(error, dict) or not isinstance(error.get('message'), str):
+            out.append('error is {"message": text, "status": 400 to 599}')
+        elif not isinstance(error.get('status'), int) or not 400 <= error['status'] < 600:
+            out.append(f'error status {error.get("status")!r} is not 400 to 599 (the caller would get 502)')
+    stale = answer.get('invalidate')
+    if stale is not None and not (isinstance(stale, list) and all(isinstance(u, str) for u in stale)):
+        out.append('invalidate is a list of URLs')
+    return out
+
+
 def _topic_matches(flt, topic):
     f, t = flt.split('/'), topic.split('/')
     for i, level in enumerate(f):
@@ -229,6 +263,8 @@ def cmd_test(args):
             else:
                 if kind == 'gateway':
                     problems += check_gateway_answer(manifest, answer)
+                elif kind == 'carrier':
+                    problems += check_carrier_answer(answer)
                 if 'expect' in case and answer != case['expect']:
                     problems.append(f'expected {json.dumps(case["expect"])}\n           got {json.dumps(answer)}')
                 if 'expect_contains' in case and not _matches(case['expect_contains'], answer):
@@ -256,6 +292,8 @@ def cmd_assets(args):
         name = (manifest.get('management') or {}).get(f)
         if name:
             files.append(name)
+    if _kind == 'carrier':
+        files += _logos(manifest)
     files.append(str(pathlib.Path('dist') / manifest[key]['module']))
     print('\n'.join(files))
 

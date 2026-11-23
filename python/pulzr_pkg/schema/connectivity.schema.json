@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/pulzar-net/pulzr-package-sdk/schema/connectivity.schema.json",
+  "title": "Pulzr connectivity contract",
+  "description": "The capability names and data shapes a carrier driver answers with (docs: Build a carrier driver).",
+  "x-capabilities": {
+    "sim.inventory": "List the account's SIMs",
+    "sim.status": "Attached, network, signal, last session",
+    "sim.usage": "Data used, by day",
+    "sim.suspend": "Turn a SIM off",
+    "sim.activate": "Turn a SIM on",
+    "sim.topup": "Add data",
+    "sim.reset": "Force a network re-attach",
+    "sim.lock": "Lock a SIM to one IMEI",
+    "sim.sms": "Send SMS to the device",
+    "sim.location": "Cell-based location",
+    "sim.order": "Order SIMs into the account",
+    "network.reach": "Platform can open a route to these ranges",
+    "network.ranges": "The address ranges the provider carries",
+    "apn.profile": "APN, auth, PIN, roaming to push to devices"
+  },
+  "$defs": {
+    "Capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "sim.inventory",
+          "sim.status",
+          "sim.usage",
+          "sim.suspend",
+          "sim.activate",
+          "sim.topup",
+          "sim.reset",
+          "sim.lock",
+          "sim.sms",
+          "sim.location",
+          "sim.order",
+          "network.reach",
+          "network.ranges",
+          "apn.profile"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "ApnProfile": {
+      "type": "object",
+      "required": [
+        "apn"
+      ],
+      "properties": {
+        "apn": {
+          "type": "string"
+        },
+        "username": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "password": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pin": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "roaming": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Sim": {
+      "type": "object",
+      "required": [
+        "iccid"
+      ],
+      "properties": {
+        "iccid": {
+          "type": "string"
+        },
+        "status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ipAddress": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "imei": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "imeiLock": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "Day": {
+      "type": "object",
+      "required": [
+        "date",
+        "mb"
+      ],
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "mb": {
+          "type": "number"
+        },
+        "txMb": {
+          "type": "number"
+        },
+        "rxMb": {
+          "type": "number"
+        },
+        "cost": {
+          "type": "number"
+        },
+        "sms": {
+          "type": "number"
+        }
+      }
+    },
+    "Page": {
+      "type": "object",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Sim"
+          }
+        },
+        "cursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

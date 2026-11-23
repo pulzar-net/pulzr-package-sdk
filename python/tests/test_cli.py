@@ -29,3 +29,21 @@ def test_expect_contains():
     assert cli._matches({'a': [{'b': 1}]}, {'a': [{'b': 1, 'c': 2}], 'd': 3})
     assert not cli._matches({'a': [{'b': 1}]}, {'a': [{'b': 1}, {'b': 2}]})
     assert cli._topic_matches('a/+/c', 'a/b/c') and not cli._topic_matches('a/+', 'a/b/c')
+
+
+def test_a_carrier_answer_is_checked_as_the_connectivity_service_checks_it():
+    assert cli.check_carrier_answer({'ok': {'iccid': '8988000000000000001'}}) == []
+    assert cli.check_carrier_answer({'error': {'message': 'no such SIM', 'status': 404}}) == []
+    assert cli.check_carrier_answer({}) and cli.check_carrier_answer({'ok': 1, 'error': {}})
+    assert any('400 to 599' in p for p in cli.check_carrier_answer({'error': {'message': 'x', 'status': 200}}))
+    assert cli.check_carrier_answer({'ok': None, 'invalidate': 'https://x'})
+
+
+def test_the_carrier_template_is_a_valid_manifest():
+    import jsonschema
+    template = pathlib.Path(cli.TEMPLATES) / 'carrier' / 'driver.json'
+    manifest = json.loads(template.read_text().replace('{{name}}', 'acme-carrier'))
+    v = jsonschema.Draft202012Validator(cli._load('carrier.schema.json'), registry=cli._registry())
+    assert [e.message for e in v.iter_errors(manifest)] == []
+    del manifest['driver']['credentials']
+    assert any('credentials' in e.message for e in v.iter_errors(manifest)), 'a carrier signs in as its organization'
