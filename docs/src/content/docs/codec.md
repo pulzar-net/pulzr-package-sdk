@@ -106,5 +106,11 @@ cargo build --release --target wasm32-unknown-unknown
 The answer is a JavaScript codec's: `data` is what was emitted, and an `Err`
 is an error with no data. The whole example is
 [`examples/sensor-codec`](https://github.com/pulzar-net/pulzr-package-sdk/tree/main/examples/sensor-codec)
-(45 KB built). The console takes JavaScript codecs; uploading a native
-module there is coming.
+(45 KB built).
+
+## In the console
+
+The codec editor takes all three: choose **Rust** under **Language** to write
+`decoder.rs` in the browser, compiled by Pulzr with this crate, with no
+toolchain of your own; or **WASM Upload** for a module you built. **Build &
+Test** runs the test vectors through the runtime that decodes your uplinks.
