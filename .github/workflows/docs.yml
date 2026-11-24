@@ -34,7 +34,7 @@ jobs:
       - name: Build the site (fails on a broken internal link)
         run: npm run build
         working-directory: docs
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: docs/dist
 
