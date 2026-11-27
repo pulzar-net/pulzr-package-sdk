@@ -9,7 +9,7 @@ description = "Pulzr extension modules: the host that runs them in wasmtime's sa
 license = {text = "MIT"}
 requires-python = ">=3.11"
 readme = "README.md"
-dependencies = ["wasmtime>=50,<51", "requests>=2.31", "jsonschema>=4.20"]
+dependencies = ["wasmtime>=50,<52", "requests>=2.31", "jsonschema>=4.20"]
 
 [project.urls]
 Homepage = "https://oss.pulzr.net/pulzr-package-sdk/"
