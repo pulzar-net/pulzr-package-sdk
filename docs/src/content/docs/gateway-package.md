@@ -80,6 +80,33 @@ against the protocol's schema; `publish` messages go only to those gateways'
 own topics. `pulzr-pkg test` checks the same, so what passes there passes in
 the platform.
 
+## How the console shows the state
+
+The gateway's page reads `state.schema.json` for every fact it shows: a field's
+`title` is its label, and the top level's fields come first, then `diag`'s.
+Three more keys decide how a value reads:
+
+| Key | On | Effect |
+|---|---|---|
+| `unit` | a number | after the value: `C` as °C, `%`, `dBm`, `dB`, `V`. `s` reads as a duration (`21d 4h`) |
+| `format: "unix-time"` | a number | seconds since 1970, shown as a date and time |
+| `properties` | an object | its fields side by side, each under its own `title` and `unit`, instead of JSON |
+
+`x-overview` puts a field at the top of the page beside Status and Backhaul,
+and out of the Details list:
+
+| Value | On | Effect |
+|---|---|---|
+| `tile` | a field | a tile of its own: the firmware, the temperature |
+| `tile` | an object | a tile whose value is its fields marked `value` and whose line under it is its fields marked `meta`, each with its title: `LTE · AT&T` over `RSRP -78 dBm · SINR 9 dB` |
+| `uptime` | seconds | the page's Uptime |
+
+```json
+"cellular": {"type": "object", "title": "Cellular", "x-overview": "tile", "properties": {
+  "type": {"type": "string", "title": "Network", "x-overview": "value"},
+  "rsrp": {"type": "integer", "title": "RSRP", "unit": "dBm", "x-overview": "meta"}}}
+```
+
 ## Test
 
 Each line of a `tests/*.jsonl` file is one call:
